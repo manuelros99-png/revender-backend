@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Revender</title>
+<script>
+  // Set theme before first paint to avoid a flash of the wrong theme.
+  (function(){
+    var saved = localStorage.getItem('gonzalito_theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --text:#1A1B23; --muted:#6B6F80; --accent:#6C5CE7; --accent2:#00C2FF; --accent-text:#FFFFFF;
+    --success:#22C55E; --warning:#F5A623; --danger:#F0506E;
+    --radius:20px; --radius-sm:14px; --radius-pill:999px;
+    --glass-bg:rgba(255,255,255,.55); --glass-bg-strong:rgba(255,255,255,.72);
+    --glass-border:rgba(255,255,255,.6); --glass-border-soft:rgba(255,255,255,.35);
+    --surface2:rgba(255,255,255,.35); --border:rgba(120,120,140,.18);
+    --shadow-sm:0 4px 16px rgba(80,70,150,.08);
+    --shadow-md:0 10px 30px rgba(80,70,150,.12);
+    --shadow-lg:0 20px 60px rgba(40,30,90,.20);
+    --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mesh-1:#FFD6E8; --mesh-2:#C9E4FF; --mesh-3:#E0D4FF; --mesh-4:#D2FFEA; --page-bg:#EEF1FA;
+  }
+  [data-theme="dark"]{
+    --text:#F2F2F7; --muted:#A6A6B3; --accent:#8C7CFF; --accent2:#36D6FF; --accent-text:#0B0B0F;
+    --success:#34D880; --warning:#FFB648; --danger:#FF6B85;
+    --glass-bg:rgba(28,28,38,.55); --glass-bg-strong:rgba(28,28,38,.72);
+    --glass-border:rgba(255,255,255,.10); --glass-border-soft:rgba(255,255,255,.07);
+    --surface2:rgba(255,255,255,.06); --border:rgba(255,255,255,.10);
+    --shadow-sm:0 4px 18px rgba(0,0,0,.35);
+    --shadow-md:0 10px 32px rgba(0,0,0,.45);
+    --shadow-lg:0 24px 64px rgba(0,0,0,.6);
+    --mesh-1:#3A2150; --mesh-2:#142A4A; --mesh-3:#2A1A4A; --mesh-4:#0F3B33; --page-bg:#0A0A12;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;font-family:var(--font);color:var(--text);
+    overscroll-behavior-y:none;-webkit-font-smoothing:antialiased;
+    min-height:100vh;background:var(--page-bg);
+    transition:background-color .3s ease,color .3s ease;
+  }
+  /* Soft animated mesh-gradient backdrop */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(38% 30% at 12% 8%, var(--mesh-1) 0%, transparent 70%),
+      radial-gradient(34% 28% at 88% 14%, var(--mesh-2) 0%, transparent 70%),
+      radial-gradient(40% 34% at 20% 92%, var(--mesh-3) 0%, transparent 70%),
+      radial-gradient(36% 30% at 92% 88%, var(--mesh-4) 0%, transparent 70%);
+    filter:blur(10px) saturate(120%);
+    opacity:.85;
+    transition:opacity .3s ease;
+  }
+  *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+  .shell{display:flex;min-height:100vh}
+
+  /* ---------------- Glass surfaces ---------------- */
+  .glass{
+    background:var(--glass-bg);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid var(--glass-border);
+  }
+
+  /* ---------------- Sidebar (desktop) ---------------- */
+  .sidebar{
+    width:240px;flex-shrink:0;padding:18px 14px;display:flex;flex-direction:column;gap:4px;
+    position:sticky;top:16px;align-self:flex-start;height:calc(100vh - 32px);margin:16px 0 16px 16px;
+    border-radius:24px;box-shadow:var(--shadow-md);
+  }
+  .brand{font-size:15px;font-weight:700;padding:8px 10px 22px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+  .nav-list{display:flex;flex-direction:column;gap:3px;flex:1}
+  .item{
+    border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--font);
+    font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:11px;
+    padding:10px 11px;border-radius:14px;text-align:left;width:100%;-webkit-tap-highlight-color:transparent;
+    transition:background-color .15s ease,color .15s ease,box-shadow .15s ease;
+  }
+  .item svg{flex-shrink:0;width:18px;height:18px}
+  .item:hover{background:var(--surface2);color:var(--text)}
+  .item:active{transform:scale(.98)}
+  .item.active{
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#fff;font-weight:600;box-shadow:0 6px 18px rgba(108,92,231,.35);
+  }
+  .item.active svg{color:#fff}
+  .item .count{margin-left:auto;background:rgba(127,127,150,.18);color:var(--text);font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill);min-width:18px;text-align:center}
+  .item.active .count{background:rgba(255,255,255,.3);color:#fff}
+  .item-label{flex:1}
+  .sidebar-footer{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border)}
+  .icon-btn{
+    border:none;background:none;cursor:pointer;color:var(--muted);width:36px;height:36px;
+    border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:background-color .15s ease,color .15s ease;
+  }
+  .icon-btn svg{width:18px;height:18px}
+  .icon-btn:hover{background:var(--surface2);color:var(--text)}
+  .icon-btn:active{transform:scale(.94)}
+
+  /* ---------------- Top header ---------------- */
+  .topheader{
+    display:none;position:sticky;top:10px;z-index:30;margin:10px 12px 0;padding:12px 16px;
+    align-items:center;justify-content:space-between;border-radius:18px;box-shadow:var(--shadow-sm);
+  }
+  .brand-mobile{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .topheader-actions{display:flex;gap:4px}
+
+  .main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+  main{flex:1;padding:36px 40px;max-width:1080px;width:100%;min-width:0}
+  h2{margin:0 0 4px;font-size:21px;font-weight:700;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:26px;line-height:1.5}
+
+  .card{border-radius:var(--radius);padding:22px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
+  .card.glass{background:var(--glass-bg)}
+
+  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .form-grid.alerts{grid-template-columns:repeat(5,1fr)}
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-bottom:6px}
+  input,select,textarea{
+    width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    padding:10px 12px;border-radius:var(--radius-sm);font-size:13.5px;min-height:42px;font-family:var(--font);
+    transition:border-color .15s ease,box-shadow .15s ease;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)}
+  input::placeholder,textarea::placeholder{color:var(--muted)}
+
+  button{cursor:pointer;font-family:var(--font);border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13.5px;font-weight:600;min-height:42px;-webkit-tap-highlight-color:transparent;transition:filter .15s ease,border-color .15s ease,color .15s ease,transform .1s ease,box-shadow .15s ease}
+  button:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg, var(--accent), var(--accent2));color:var(--accent-text);box-shadow:0 6px 20px rgba(108,92,231,.35)}
+  .btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 26px rgba(108,92,231,.45)}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+  .btn-secondary:hover{background:rgba(127,127,150,.18)}
+  .btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-danger{background:rgba(240,80,110,.10);border:1px solid var(--danger);color:var(--danger)}
+  .btn-danger:hover{background:rgba(240,80,110,.18)}
+  .btn-row{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -22px;padding:0 22px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--surface2)}
+
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;white-space:nowrap;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .badge.ok{background:color-mix(in srgb, var(--success) 18%, transparent);color:var(--success)}
+  .badge.no{background:color-mix(in srgb, var(--danger) 14%, transparent);color:var(--danger)}
+  .badge.warn{background:color-mix(in srgb, var(--warning) 18%, transparent);color:var(--warning)}
+
+  a.link{color:var(--accent);text-decoration:none;font-size:12.5px;font-weight:500}
+  a.link:hover{text-decoration:underline}
+
+  .empty{text-align:center;padding:56px 20px;color:var(--muted)}
+  .empty .big{font-size:32px;margin-bottom:12px;opacity:.7}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+  .toolbar input[type=text]{max-width:260px}
+  .pill{font-size:11px;font-weight:500;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:var(--radius-pill);white-space:nowrap;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+
+  .grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .stat{border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm)}
+  .stat .v{font-size:25px;font-weight:700;letter-spacing:-.3px}
+  .stat .l{color:var(--muted);font-size:12px;margin-top:4px}
+
+  .small-btn{padding:6px 12px;font-size:12px;min-height:32px}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(20,15,40,.35);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+  .modal-bg.open{display:flex}
+  .modal{border-radius:var(--radius);padding:24px;width:420px;max-width:100%;box-shadow:var(--shadow-lg)}
+  .modal h3{margin:0 0 8px;font-size:16px}
+
+  textarea{height:160px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;resize:vertical}
+
+  .prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .prov-chip{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;font-size:12.5px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+  .prov-chip input{width:auto;margin:0;min-height:auto}
+  .prov-chip.checked{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent)}
+
+  /* ---------------- Bottom tab bar (mobile) ---------------- */
+  .tabbar{display:none}
+
+  /* ---------------- Command palette ---------------- */
+  .cmdk-overlay{position:fixed;inset:0;background:rgba(20,15,40,.32);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;z-index:70;padding:14vh 16px 16px}
+  .cmdk-overlay.open{display:flex}
+  .cmdk-box{border-radius:20px;width:520px;max-width:100%;box-shadow:var(--shadow-lg);overflow:hidden}
+  .cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+  .cmdk-input-wrap svg{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+  .cmdk-input-wrap input{border:none;background:none;padding:0;font-size:15px;min-height:auto;backdrop-filter:none}
+  .cmdk-input-wrap input:focus{box-shadow:none}
+  .cmdk-list{max-height:320px;overflow-y:auto;padding:8px}
+  .cmdk-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:13.5px;color:var(--text)}
+  .cmdk-item svg{width:16px;height:16px;color:var(--muted)}
+  .cmdk-item:hover,.cmdk-item.hl{background:var(--surface2)}
+  .cmdk-empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ---------------- Toasts ---------------- */
+  .toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;pointer-events:none}
+  .toast{
+    pointer-events:auto;box-shadow:var(--shadow-lg);
+    border-radius:var(--radius-pill);padding:11px 18px;font-size:13px;font-weight:500;color:var(--text);
+    display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease;
+    max-width:90vw;
+  }
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .toast-success::before{background:var(--success)}
+  .toast-error::before{background:var(--danger)}
+  .toast-info::before{background:var(--accent)}
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 980px){
+    .form-grid, .form-grid.alerts{grid-template-columns:repeat(2,1fr)}
+    .grid-stats{grid-template-columns:repeat(2,1fr)}
+    .prov-grid{grid-template-columns:repeat(3,1fr)}
+  }
+
+  @media (max-width: 768px){
+    .sidebar{display:none}
+    .topheader{display:flex}
+    .shell{flex-direction:column}
+    main{padding:14px 14px 96px;max-width:100%}
+    h2{font-size:19px}
+    .card{padding:16px;border-radius:18px}
+    .form-grid, .form-grid.alerts{grid-template-columns:1fr}
+    .grid-stats{grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{padding:14px 16px}
+    .stat .v{font-size:21px}
+    .prov-grid{grid-template-columns:repeat(2,1fr)}
+    .toolbar{flex-direction:column;align-items:stretch}
+    .toolbar input[type=text], .toolbar select{max-width:100%}
+    .btn-row{flex-direction:column;align-items:stretch}
+    .btn-row button{width:100%}
+    .table-scroll{margin:0 -16px;padding:0 16px}
+
+    .tabbar{
+      display:flex;position:fixed;bottom:10px;left:10px;right:10px;z-index:50;
+      border-radius:22px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+      justify-content:space-around;box-shadow:var(--shadow-md);
+    }
+    .tabbar.glass{background:var(--glass-bg-strong)}
+    .tabbar .item{flex-direction:column;gap:3px;font-size:10.5px;padding:7px 4px;border-radius:14px;flex:1}
+    .tabbar .item svg{width:20px;height:20px}
+    .tabbar .item .count{display:none}
+    .tabbar .item.active{box-shadow:0 4px 14px rgba(108,92,231,.4)}
+
+    .modal-bg{align-items:flex-end;padding:0}
+    .modal{width:100%;border-radius:24px 24px 0 0;box-shadow:0 -16px 50px rgba(20,15,40,.25)}
+    .cmdk-overlay{padding:0;align-items:flex-end}
+    .cmdk-box{border-radius:24px 24px 0 0;width:100%}
+  }
+
+  @media (max-width: 480px){
+    .grid-stats{grid-template-columns:1fr}
+    .prov-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar glass">
+    <div class="brand">🚗 Revender</div>
+    <nav class="nav-list">
+      <button type="button" class="item active" data-view="buscar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="item-label">Buscar</span><span class="count" id="cnt-search"></span>
+      </button>
+      <button type="button" class="item" data-view="historial">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+        <span class="item-label">Historial</span><span class="count" id="cnt-historial"></span>
+      </button>
+      <button type="button" class="item" data-view="oportunidades">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+        <span class="item-label">Oportunidades</span><span class="count" id="cnt-oport"></span>
+      </button>
+      <button type="button" class="item" data-view="alertas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="item-label">Alertas</span><span class="count" id="cnt-alertas"></span>
+      </button>
+      <button type="button" class="item" data-view="importar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+        <span class="item-label">Importar datos</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" class="icon-btn" id="btn-cmdk-side" title="Buscar (⌘K)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-theme" title="Cambiar tema">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <header class="topheader glass">
+      <div class="brand-mobile">🚗 Revender</div>
+      <div class="topheader-actions">
+        <button type="button" class="icon-btn" id="btn-cmdk-mobile" title="Buscar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-theme-mobile" title="Cambiar tema">
+          <svg id="theme-icon-mobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </button>
+      </div>
+    </header>
+    <main>
+
+    <!-- BUSCAR -->
+    <section id="view-buscar">
+      <h2>Buscar oportunidad</h2>
+      <div class="sub">Definí marca, modelo, versión, año y zona geográfica. Los resultados los carga Claude navegando Mercado Libre en vivo y se guardan acá.</div>
+      <div class="card glass">
+        <div class="form-grid">
+          <div><label>Marca</label><input id="f-marca" placeholder="Peugeot"></div>
+          <div><label>Modelo</label><input id="f-modelo" placeholder="208"></div>
+          <div><label>Versión</label><input id="f-version" placeholder="Active (opcional)"></div>
+          <div><label>Año mínimo</label><input id="f-anio-min" type="number" placeholder="2022"></div>
+          <div><label>Año máximo</label><input id="f-anio-max" type="number" placeholder="2024"></div>
+        </div>
+        <div style="margin-top:16px">
+          <label>Provincias (dejá vacío para "todo el país")</label>
+          <div id="f-provincias" class="prov-grid"></div>
+        </div>
+        <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
+          <div><label>Ciudad / localidad (opcional)</label><input id="f-ciudad" placeholder="Ej: Bahía Blanca"></div>
+          <div><label>Radio desde la ciudad (km, opcional)</label><input id="f-radio-km" type="number" placeholder="Ej: 100"></div>
+          <div>
+            <label>Antigüedad de la publicación</label>
+            <select id="f-antiguedad">
+              <option value="">Sin filtro (todas)</option>
+              <option value="hoy">Publicadas hoy</option>
+              <option value="semana">Esta semana</option>
+              <option value="mes">Este último mes</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
+          <div><label>Kilometraje máximo</label><input id="f-km-max" type="number" placeholder="Ej: 120000"></div>
+          <div><label>Precio máximo (opcional, en ARS)</label><input id="f-precio-max" type="number" placeholder="Ej: 25000000"></div>
+          <div>
+            <label>Umbral de oportunidad</label>
+            <select id="f-threshold">
+              <option value="15">Conservador (≥15%)</option>
+              <option value="12" selected>Normal (≥12%)</option>
+              <option value="10">Agresivo (≥10%)</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-nueva-busqueda">Crear búsqueda</button>
+          <button class="btn-secondary" id="btn-buscar-extension">🔎 Buscar en Mercado Libre</button>
+          <span class="sub" style="margin:0;align-self:center">"Crear búsqueda" usa el flujo manual (copiás un mensaje para Claude). "Buscar en Mercado Libre" usa la extensión — abre una pestaña real y trae resultados automáticamente.</span>
+        </div>
+        <div id="extension-hint" class="sub" style="margin-top:6px;display:none">⚠ No detecté la extensión Revender instalada. Instalala para usar el botón de búsqueda automática, o seguí con el flujo manual.</div>
+      </div>
+      <div id="ultima-busqueda-box"></div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="view-historial" style="display:none">
+      <h2>Historial de búsquedas</h2>
+      <div class="sub">Todas las búsquedas realizadas, con sus resultados.</div>
+      <div id="historial-list"></div>
+    </section>
+
+    <!-- OPORTUNIDADES -->
+    <section id="view-oportunidades" style="display:none">
+      <h2>Oportunidades detectadas</h2>
+      <div class="sub">Publicaciones marcadas como oportunidad real (≥10% bajo valor de mercado, km razonable, sin riesgos evidentes).</div>
+      <div class="grid-stats" id="oport-stats"></div>
+      <div class="card glass">
+        <div class="toolbar">
+          <input type="text" id="oport-filter" placeholder="Filtrar por marca o modelo...">
+          <select id="oport-antiguedad-filter" style="max-width:200px">
+            <option value="">Cualquier antigüedad</option>
+            <option value="hoy">Publicadas hoy</option>
+            <option value="semana">Última semana</option>
+            <option value="mes">Último mes</option>
+          </select>
+          <span class="pill" id="oport-count-pill"></span>
+        </div>
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio</th><th>Valor Mercado</th><th>Diferencia</th><th>Score</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
+          <tbody id="oport-tbody"></tbody>
+        </table>
+        </div>
+        <div id="oport-empty" class="empty" style="display:none">
+          <div class="big">🔎</div>
+          No hay oportunidades detectadas todavía.<br>Corré una búsqueda y cargá los resultados.
+        </div>
+      </div>
+    </section>
+
+    <!-- ALERTAS -->
+    <section id="view-alertas" style="display:none">
+      <h2>Alertas</h2>
+      <div class="sub">Configurá condiciones. Cuando un resultado nuevo cumpla la condición, aparece como alerta activa.</div>
+      <div class="card glass">
+        <div class="form-grid alerts">
+          <div><label>Marca</label><input id="a-marca" placeholder="Peugeot"></div>
+          <div><label>Modelo</label><input id="a-modelo" placeholder="208"></div>
+          <div><label>Año mín.</label><input id="a-anio-min" type="number" placeholder="2022"></div>
+          <div><label>Km máx.</label><input id="a-km-max" type="number" placeholder="120000"></div>
+          <div><label>% bajo mercado mín.</label><input id="a-desc-min" type="number" placeholder="10"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-nueva-alerta">Crear alerta</button>
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th>Marca / Modelo</th><th>Año mín.</th><th>Km máx.</th><th>% mín. bajo mercado</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="alertas-tbody"></tbody>
+        </table>
+        </div>
+        <div id="alertas-empty" class="empty" style="display:none">
+          <div class="big">🔔</div>
+          Todavía no creaste alertas.
+        </div>
+      </div>
+    </section>
+
+    <!-- IMPORTAR -->
+    <section id="view-importar" style="display:none">
+      <h2>Importar resultados</h2>
+      <div class="sub">Pegá aquí el JSON de resultados que te pase Claude después de analizar una búsqueda en Mercado Libre, y se integra al historial, oportunidades y alertas automáticamente.</div>
+      <div class="card glass">
+        <label>JSON de resultados</label>
+        <textarea id="import-json" placeholder='{"marca":"Peugeot","modelo":"208","anioMin":2022,"anioMax":2024,"resultados":[{"titulo":"...","anio":2022,"km":49000,"precio":16990,"moneda":"USD","ubicacion":"Mar del Plata","link":"https://...","valorMercado":18500,"diasPublicado":3,"esOportunidad":false,"motivo":"","riesgos":""}]}'></textarea>
+        <div class="sub" style="margin-top:6px">Tip: <code>diasPublicado</code> es opcional — cuántos días hace que se publicó el aviso (0 = hoy, ≤7 = esta semana, ≤30 = este mes). Se usa para el filtro de antigüedad en Oportunidades.</div>
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-importar">Importar</button>
+          <button class="btn-ghost" id="btn-ejemplo">Cargar ejemplo (Peugeot 208)</button>
+        </div>
+        <div id="import-status" class="sub" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+  </main>
+  </div>
+
+  <nav class="tabbar glass">
+    <button type="button" class="item tab-item active" data-view="buscar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Buscar</span>
+    </button>
+    <button type="button" class="item tab-item" data-view="historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+      <span>Historial</span>
+    </button>
+    <button type="button" class="item tab-item" data-view="oportunidades">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+      <span>Oport.</span>
+    </button>
+    <button type="button" class="item tab-item" data-view="alertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span>Alertas</span>
+    </button>
+    <button type="button" class="item tab-item" data-view="importar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+      <span>Importar</span>
+    </button>
+  </nav>
+</div>
+
+<div class="cmdk-overlay" id="cmdk-overlay">
+  <div class="cmdk-box glass">
+    <div class="cmdk-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="cmdk-input" type="text" placeholder="Ir a una sección..." autocomplete="off">
+    </div>
+    <div class="cmdk-list" id="cmdk-list"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal glass">
+    <h3>Confirmar eliminación</h3>
+    <p class="sub" style="margin-bottom:0">Esta acción no se puede deshacer.</p>
+    <div class="btn-row">
+      <button class="btn-danger" id="modal-confirm">Eliminar</button>
+      <button class="btn-ghost" id="modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const STORAGE_KEY = 'gonzalito_autos_data_v1';
+
+function seedData(){
+  return {
+    historial: [{
+      id: 'b_seed_peugeot208',
+      marca: 'Peugeot', modelo: '208', anioMin: 2022, anioMax: 2024,
+      fecha: new Date().toISOString(),
+      resultados: [
+        {titulo:"208 1.0 T200 GT CVT", anio:2024, km:14000, precio:24000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3323446644-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:21000, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.6 Active Tiptronic", anio:2022, km:49000, precio:16990, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1831325953-peugeot-208-16-active-tiptronic-_JM", valorMercado:18000, esOportunidad:false, motivo:"", riesgos:"Precio justificado por mayor km y versión de menor equipamiento"},
+        {titulo:"208 1.6 Feline Automático", anio:2022, km:6000, precio:18815, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1799124153-peugeot-208-16-feline-automatico-_JM", valorMercado:18800, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.0 T200 GT CVT", anio:2024, km:22000, precio:20000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1839304013-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:20500, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.6 Active Pack", anio:2023, km:19000, precio:18500, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3289180450-peugeot-208-16-active-pack-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.6 Active Pack Tiptronic", anio:2024, km:29897, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3152830582-peugeot-208-16-active-pack-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.6 Feline Tiptronic", anio:2022, km:37000, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3112220034-peugeot-208-16-feline-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 1.6 Style Tiptronic", anio:2023, km:36000, precio:18467, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3410941708-peugeot-208-16-style-tiptronic-_JM", valorMercado:18500, esOportunidad:false, motivo:"", riesgos:""},
+        {titulo:"208 Style At", anio:2023, km:23000, precio:18500, moneda:"USD", ubicacion:"Buenos Aires", link:"https://auto.mercadolibre.com.ar/MLA-1831467409-peugeot-208-2023-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""}
+      ]
+    }],
+    alertas: []
+  };
+}
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw) return JSON.parse(raw);
+  return seedData();
+}
+function saveData(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+let DB = loadData();
+let pendingDelete = null;
+
+const fmtMoney = (v, currency) => {
+  if(v == null) return '—';
+  const symbol = currency === 'USD' ? 'US$' : '$';
+  return symbol + ' ' + Math.round(v).toLocaleString('es-AR');
+};
+
+function diffPct(precio, valorMercado){
+  if(!valorMercado) return null;
+  return Math.round(((valorMercado - precio) / valorMercado) * 100);
+}
+
+// ---------- NAV (sidebar desktop + tab bar mobile share data-view) ----------
+document.querySelectorAll('.item[data-view]').forEach(el=>{
+  el.addEventListener('click', ()=> showView(el.dataset.view));
+});
+function showView(view){
+  document.querySelectorAll('.item[data-view]').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll(`.item[data-view="${view}"]`).forEach(i=>i.classList.add('active'));
+  ['buscar','historial','oportunidades','alertas','importar'].forEach(v=>{
+    document.getElementById('view-'+v).style.display = (v===view)?'block':'none';
+  });
+  window.scrollTo(0,0);
+  renderAll();
+}
+
+// ---------- THEME ----------
+const SUN_PATH = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+const MOON_PATH = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>';
+function applyThemeIcon(){
+  const theme = document.documentElement.getAttribute('data-theme');
+  const path = theme === 'dark' ? SUN_PATH : MOON_PATH;
+  ['theme-icon','theme-icon-mobile'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = path;
+  });
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('gonzalito_theme', next);
+  applyThemeIcon();
+}
+document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
+document.getElementById('btn-theme-mobile')?.addEventListener('click', toggleTheme);
+applyThemeIcon();
+
+// ---------- TOASTS ----------
+function showToast(message, type){
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast glass toast-' + (type || 'info');
+  el.textContent = message;
+  container.appendChild(el);
+  requestAnimationFrame(()=> el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=> el.remove(), 250);
+  }, 3200);
+}
+
+// ---------- COMMAND PALETTE ----------
+const CMDK_ITEMS = [
+  {label:'Buscar oportunidad', view:'buscar'},
+  {label:'Historial de búsquedas', view:'historial'},
+  {label:'Oportunidades detectadas', view:'oportunidades'},
+  {label:'Alertas', view:'alertas'},
+  {label:'Importar datos', view:'importar'},
+];
+const cmdkOverlay = document.getElementById('cmdk-overlay');
+const cmdkInput = document.getElementById('cmdk-input');
+const cmdkList = document.getElementById('cmdk-list');
+function renderCmdkList(filter){
+  const q = (filter||'').toLowerCase();
+  const items = CMDK_ITEMS.filter(i => i.label.toLowerCase().includes(q));
+  if(!items.length){ cmdkList.innerHTML = '<div class="cmdk-empty">Sin resultados</div>'; return; }
+  cmdkList.innerHTML = items.map((i,idx)=>`
+    <div class="cmdk-item${idx===0?' hl':''}" data-view="${i.view}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      ${i.label}
+    </div>`).join('');
+  cmdkList.querySelectorAll('.cmdk-item').forEach(el=>{
+    el.addEventListener('click', ()=>{ showView(el.dataset.view); closeCmdk(); });
+  });
+}
+function openCmdk(){
+  cmdkOverlay.classList.add('open');
+  cmdkInput.value = '';
+  renderCmdkList('');
+  setTimeout(()=> cmdkInput.focus(), 30);
+}
+function closeCmdk(){ cmdkOverlay.classList.remove('open'); }
+cmdkInput?.addEventListener('input', ()=> renderCmdkList(cmdkInput.value));
+cmdkInput?.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const first = cmdkList.querySelector('.cmdk-item');
+    if(first){ showView(first.dataset.view); closeCmdk(); }
+  }
+  if(e.key === 'Escape') closeCmdk();
+});
+cmdkOverlay?.addEventListener('click', (e)=>{ if(e.target === cmdkOverlay) closeCmdk(); });
+document.getElementById('btn-cmdk-side')?.addEventListener('click', openCmdk);
+document.getElementById('btn-cmdk-mobile')?.addEventListener('click', openCmdk);
+document.addEventListener('keydown', (e)=>{
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+    e.preventDefault();
+    cmdkOverlay.classList.contains('open') ? closeCmdk() : openCmdk();
+  }
+});
+
+// ---------- PUENTE CON LA EXTENSIÓN ----------
+let extensionDetected = false;
+
+window.addEventListener('gonzalito:extension-ready', () => {
+  extensionDetected = true;
+  document.getElementById('extension-hint').style.display = 'none';
+});
+
+setTimeout(() => {
+  if (!extensionDetected) {
+    document.getElementById('extension-hint').style.display = 'block';
+  }
+}, 1200);
+
+function mapBackendRowToResultado(row){
+  return {
+    titulo: row.titulo,
+    anio: row.anio,
+    km: row.km,
+    precio: row.precio,
+    moneda: row.moneda,
+    ubicacion: row.ubicacion,
+    link: row.link,
+    valorMercado: row.valorMercado,
+    score: row.score,
+    recomendacion: row.recomendacion,
+    esOportunidad: row.esOportunidad,
+    motivo: row.motivo,
+    riesgos: row.riesgos
+  };
+}
+
+function upsertBusquedaPorExtension(searchId, patch){
+  let entry = DB.historial.find(b => b.id === searchId);
+  if(!entry){
+    entry = {
+      id: searchId,
+      marca: lastExtensionParams?.marca || '',
+      modelo: lastExtensionParams?.modelo || '',
+      version: lastExtensionParams?.version || '',
+      anioMin: lastExtensionParams?.anioMin || null,
+      anioMax: lastExtensionParams?.anioMax || null,
+      provincias: [], ciudad: '', radioKm: null, antiguedad: '',
+      fecha: new Date().toISOString(),
+      resultados: [],
+      origen: 'extension',
+      estado: 'pendiente'
+    };
+    DB.historial.unshift(entry);
+  }
+  Object.assign(entry, patch);
+  saveData(DB);
+}
+
+let lastExtensionParams = null;
+
+window.addEventListener('gonzalito:status', (e) => {
+  const { searchId, status, message } = e.detail;
+  if(!searchId){
+    showToast(message || 'Error iniciando la búsqueda', 'error');
+    return;
+  }
+  upsertBusquedaPorExtension(searchId, { estado: status, estadoMensaje: message });
+  renderAll();
+  if(status === 'error') showToast(message || 'Ocurrió un error', 'error');
+});
+
+window.addEventListener('gonzalito:resultado', (e) => {
+  const { searchId, result } = e.detail;
+  const resultados = [
+    ...(result.oportunidades || []).map(mapBackendRowToResultado),
+    ...(result.descartadas || []).map(mapBackendRowToResultado)
+  ];
+  upsertBusquedaPorExtension(searchId, { estado: 'completada', resultados });
+  renderAll();
+  const n = (result.oportunidades || []).length;
+  showToast(n > 0 ? `${n} oportunidad(es) detectada(s)` : 'Búsqueda completada, sin oportunidades', n>0?'success':'info');
+});
+
+document.getElementById('btn-buscar-extension').addEventListener('click', () => {
+  const marca = document.getElementById('f-marca').value.trim();
+  const modelo = document.getElementById('f-modelo').value.trim();
+  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
+  if(!extensionDetected){
+    showToast('La extensión no está instalada o no se detectó en esta página', 'error');
+    document.getElementById('extension-hint').style.display = 'block';
+    return;
+  }
+  const params = {
+    marca, modelo,
+    version: document.getElementById('f-version').value.trim(),
+    anioMin: parseInt(document.getElementById('f-anio-min').value) || null,
+    anioMax: parseInt(document.getElementById('f-anio-max').value) || null,
+    kmMax: parseInt(document.getElementById('f-km-max').value) || null,
+    precioMax: parseFloat(document.getElementById('f-precio-max').value) || null,
+    zona: describeZona({ provincias: getSelectedProvincias(), ciudad: document.getElementById('f-ciudad').value.trim(), radioKm: parseInt(document.getElementById('f-radio-km').value)||null }),
+    threshold: parseInt(document.getElementById('f-threshold').value) || 12
+  };
+  lastExtensionParams = params;
+  window.dispatchEvent(new CustomEvent('gonzalito:buscar', { detail: params }));
+  showToast('Búsqueda enviada a la extensión...', 'info');
+});
+
+// ---------- BUSCAR ----------
+const PROVINCIAS_AR = [
+  "Buenos Aires","CABA","Córdoba","Santa Fe","Mendoza","Entre Ríos",
+  "La Pampa","Neuquén","Río Negro","Chubut","Santa Cruz","Tierra del Fuego",
+  "Salta","Jujuy","Tucumán","Santiago del Estero","Catamarca","La Rioja",
+  "San Juan","San Luis","Corrientes","Misiones","Chaco","Formosa"
+];
+
+function renderProvinciasChips(){
+  const cont = document.getElementById('f-provincias');
+  cont.innerHTML = PROVINCIAS_AR.map(p=>`
+    <label class="prov-chip" data-prov="${p}">
+      <input type="checkbox" value="${p}"> ${p}
+    </label>`).join('');
+  cont.querySelectorAll('.prov-chip').forEach(chip=>{
+    const input = chip.querySelector('input');
+    input.addEventListener('change', ()=> chip.classList.toggle('checked', input.checked));
+  });
+}
+renderProvinciasChips();
+
+function getSelectedProvincias(){
+  return Array.from(document.querySelectorAll('#f-provincias input:checked')).map(i=>i.value);
+}
+
+document.getElementById('btn-nueva-busqueda').addEventListener('click', ()=>{
+  const marca = document.getElementById('f-marca').value.trim();
+  const modelo = document.getElementById('f-modelo').value.trim();
+  const version = document.getElementById('f-version').value.trim();
+  const anioMin = parseInt(document.getElementById('f-anio-min').value) || null;
+  const anioMax = parseInt(document.getElementById('f-anio-max').value) || null;
+  const provincias = getSelectedProvincias();
+  const ciudad = document.getElementById('f-ciudad').value.trim();
+  const radioKm = parseInt(document.getElementById('f-radio-km').value) || null;
+  const antiguedad = document.getElementById('f-antiguedad').value;
+  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
+  const entry = {
+    id: 'b' + Date.now(),
+    marca, modelo, version, anioMin, anioMax,
+    provincias, ciudad, radioKm, antiguedad,
+    fecha: new Date().toISOString(),
+    resultados: []
+  };
+  DB.historial.unshift(entry);
+  saveData(DB);
+  document.getElementById('f-marca').value='';
+  document.getElementById('f-modelo').value='';
+  document.getElementById('f-version').value='';
+  document.getElementById('f-anio-min').value='';
+  document.getElementById('f-anio-max').value='';
+  document.getElementById('f-ciudad').value='';
+  document.getElementById('f-radio-km').value='';
+  document.getElementById('f-antiguedad').value='';
+  document.querySelectorAll('#f-provincias input:checked').forEach(i=>{ i.checked=false; i.closest('.prov-chip').classList.remove('checked'); });
+  renderUltimaBusqueda();
+  renderAll();
+  showToast(`Búsqueda creada: ${marca} ${modelo}`, 'success');
+});
+
+const ANTIGUEDAD_LABEL = { hoy:'Publicadas hoy', semana:'Esta semana', mes:'Último mes' };
+
+function describeZona(b){
+  const parts = [];
+  if(b.provincias && b.provincias.length) parts.push(b.provincias.join(', '));
+  if(b.ciudad) parts.push(b.ciudad + (b.radioKm? ` (radio ${b.radioKm} km)` : ''));
+  return parts.length ? parts.join(' · ') : 'Todo el país';
+}
+
+function buildClaudePrompt(b){
+  const partes = [
+    `Ejecutá la búsqueda con id ${b.id}:`,
+    `Marca: ${b.marca}`,
+    `Modelo: ${b.modelo}`,
+  ];
+  if(b.version) partes.push(`Versión: ${b.version}`);
+  partes.push(`Año: entre ${b.anioMin||'?'} y ${b.anioMax||'?'}`);
+  partes.push(`Zona: ${describeZona(b)}`);
+  if(b.antiguedad) partes.push(`Antigüedad de publicación: ${ANTIGUEDAD_LABEL[b.antiguedad]}`);
+  partes.push(`Navegá Mercado Libre, analizá las publicaciones y devolveme el JSON listo para pegar en "Importar datos" con ese mismo id (${b.id}).`);
+  return partes.join('\n');
+}
+
+function copyClaudePrompt(id){
+  const b = DB.historial.find(x=>x.id===id);
+  if(!b) return;
+  const text = buildClaudePrompt(b);
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('Mensaje copiado, pegalo en el chat con Claude', 'success');
+  }).catch(()=>{
+    showToast('No se pudo copiar automáticamente, copiá el texto manualmente', 'error');
+  });
+}
+
+const ESTADO_LABEL = {
+  pendiente: { text: '⏳ Pendiente', cls: 'pill' },
+  buscando: { text: '🔎 Buscando en Mercado Libre...', cls: 'badge warn' },
+  analizando: { text: '🧮 Analizando publicaciones...', cls: 'badge warn' },
+  completada: { text: '✅ Completada', cls: 'badge ok' },
+  error: { text: '⚠ Error', cls: 'badge no' },
+};
+
+function estadoPill(b){
+  if(!b.estado) return '';
+  const info = ESTADO_LABEL[b.estado] || { text: b.estado, cls: 'pill' };
+  const titleAttr = b.estadoMensaje ? ` title="${b.estadoMensaje.replace(/"/g,'&quot;')}"` : '';
+  return `<span class="${info.cls}"${titleAttr}>${info.text}</span>`;
+}
+
+function renderUltimaBusqueda(){
+  const box = document.getElementById('ultima-busqueda-box');
+  if(!DB.historial.length){ box.innerHTML=''; return; }
+  const b = DB.historial[0];
+  const accionesManual = b.origen === 'extension'
+    ? `<div class="sub">${b.estadoMensaje || 'Búsqueda iniciada vía extensión.'}</div>`
+    : `<div class="sub">Creada ${new Date(b.fecha).toLocaleString('es-AR')}. Para que se complete con datos reales, copiá el mensaje y pegalo en el chat con Claude:</div>
+       <div class="btn-row" style="margin-top:6px">
+         <button class="btn-secondary small-btn" onclick="copyClaudePrompt('${b.id}')">📋 Copiar mensaje para Claude</button>
+         <span class="pill">id: ${b.id}</span>
+       </div>`;
+  box.innerHTML = `<div class="card glass">
+    <div class="toolbar">
+      <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''} (${b.anioMin||'?'}–${b.anioMax||'?'})</strong>
+      <span class="pill">${b.resultados.length} resultados</span>
+      ${estadoPill(b)}
+      ${b.antiguedad ? `<span class="pill">🕐 ${ANTIGUEDAD_LABEL[b.antiguedad]}</span>` : ''}
+    </div>
+    <div class="sub">📍 ${describeZona(b)}</div>
+    ${accionesManual}
+  </div>`;
+}
+
+// ---------- HISTORIAL ----------
+function renderHistorial(){
+  const cont = document.getElementById('historial-list');
+  if(!DB.historial.length){
+    cont.innerHTML = `<div class="card glass"><div class="empty"><div class="big">🕘</div>Todavía no hiciste ninguna búsqueda.</div></div>`;
+    return;
+  }
+  cont.innerHTML = DB.historial.map(b=>{
+    const rows = b.resultados.map(r=>{
+      const pct = diffPct(r.precio, r.valorMercado);
+      return `<tr>
+        <td>${r.titulo}</td>
+        <td>${r.anio}</td>
+        <td>${r.km?.toLocaleString('es-AR')||'—'} km</td>
+        <td>${fmtMoney(r.precio, r.moneda)}</td>
+        <td>${r.valorMercado?fmtMoney(r.valorMercado,'USD'):'—'}</td>
+        <td>${pct!==null?(pct+'%'):'—'}</td>
+        <td>${publicadoLabel(r.diasPublicado)}</td>
+        <td>${r.esOportunidad?'<span class="badge ok">Oportunidad</span>':'<span class="badge no">No</span>'}</td>
+        <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="card glass">
+      <div class="toolbar">
+        <div>
+          <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''}</strong> <span class="pill">${b.anioMin||'?'}–${b.anioMax||'?'}</span> <span class="pill">📍 ${describeZona(b)}</span> ${b.antiguedad?`<span class="pill">🕐 ${ANTIGUEDAD_LABEL[b.antiguedad]}</span>`:''} ${estadoPill(b)}
+          <div class="sub" style="margin:4px 0 0">${new Date(b.fecha).toLocaleString('es-AR')} · ${b.resultados.length} resultados · id: ${b.id}</div>
+        </div>
+        <div class="row-actions">
+          ${b.origen === 'extension' ? '' : `<button class="btn-secondary small-btn" onclick="copyClaudePrompt('${b.id}')">📋 Re-ejecutar con Claude</button>`}
+          <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
+        </div>
+      </div>
+      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio</th><th>Val. Mercado</th><th>Dif.</th><th>Publicado</th><th>Estado</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+    </div>`;
+  }).join('');
+}
+
+function publicadoLabel(dias){
+  if(dias === undefined || dias === null) return '<span class="sub">—</span>';
+  if(dias <= 0) return '<span class="badge ok">Hoy</span>';
+  if(dias <= 7) return `<span class="badge warn">${dias}d (semana)</span>`;
+  if(dias <= 30) return `<span class="pill">${dias}d (mes)</span>`;
+  return `<span class="sub">${dias}d</span>`;
+}
+
+function confirmDeleteBusqueda(id){
+  pendingDelete = { type:'busqueda', id };
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+// ---------- OPORTUNIDADES ----------
+function allOportunidades(){
+  const out = [];
+  DB.historial.forEach(b=>{
+    b.resultados.forEach(r=>{
+      if(r.esOportunidad) out.push({...r, marca:b.marca, modelo:b.modelo, busquedaId:b.id});
+    });
+  });
+  return out;
+}
+
+function diasDentroDe(dias, rango){
+  if(dias === undefined || dias === null) return false;
+  if(rango === 'hoy') return dias <= 0;
+  if(rango === 'semana') return dias <= 7;
+  if(rango === 'mes') return dias <= 30;
+  return true;
+}
+
+function renderOportunidades(){
+  const filterVal = (document.getElementById('oport-filter')?.value || '').toLowerCase();
+  const antiguedadVal = document.getElementById('oport-antiguedad-filter')?.value || '';
+  const ops = allOportunidades().filter(o =>
+    (!filterVal || (o.marca+' '+o.modelo).toLowerCase().includes(filterVal)) &&
+    (!antiguedadVal || diasDentroDe(o.diasPublicado, antiguedadVal))
+  );
+  const tbody = document.getElementById('oport-tbody');
+  const empty = document.getElementById('oport-empty');
+  document.getElementById('oport-count-pill').textContent = ops.length + ' resultado(s)';
+
+  // stats
+  const totalBusquedas = DB.historial.length;
+  const totalResultados = DB.historial.reduce((a,b)=>a+b.resultados.length,0);
+  const totalOport = allOportunidades().length;
+  const avgDiff = (()=>{
+    const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+    if(!diffs.length) return '—';
+    return Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length)+'%';
+  })();
+  document.getElementById('oport-stats').innerHTML = `
+    <div class="stat glass"><div class="v">${totalBusquedas}</div><div class="l">Búsquedas realizadas</div></div>
+    <div class="stat glass"><div class="v">${totalResultados}</div><div class="l">Publicaciones analizadas</div></div>
+    <div class="stat glass"><div class="v" style="color:var(--success)">${totalOport}</div><div class="l">Oportunidades detectadas</div></div>
+    <div class="stat glass"><div class="v">${avgDiff}</div><div class="l">Diferencia promedio vs. mercado</div></div>
+  `;
+
+  if(!ops.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = ops.map(o=>{
+    const pct = diffPct(o.precio, o.valorMercado);
+    return `<tr>
+      <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.motivo?`<div class="sub" style="margin:2px 0 0;color:var(--success)">${o.motivo}</div>`:''}${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
+      <td>${o.anio}</td>
+      <td>${o.km?.toLocaleString('es-AR')||'—'}</td>
+      <td>${fmtMoney(o.precio,o.moneda)}</td>
+      <td>${fmtMoney(o.valorMercado,'USD')}</td>
+      <td><span class="badge ${pct>=10?'ok':'warn'}">${pct}% ↓</span></td>
+      <td>${o.score!=null?`<span class="pill">${Math.round(o.score)}/100</span>`:'—'}</td>
+      <td>${publicadoLabel(o.diasPublicado)}</td>
+      <td>${o.ubicacion||'—'}</td>
+      <td>${o.link?`<a class="link" href="${o.link}" target="_blank">Ver →</a>`:''}</td>
+    </tr>`;
+  }).join('');
+}
+document.getElementById('oport-filter')?.addEventListener('input', renderOportunidades);
+document.getElementById('oport-antiguedad-filter')?.addEventListener('change', renderOportunidades);
+
+// ---------- ALERTAS ----------
+document.getElementById('btn-nueva-alerta').addEventListener('click', ()=>{
+  const marca = document.getElementById('a-marca').value.trim();
+  const modelo = document.getElementById('a-modelo').value.trim();
+  const anioMin = parseInt(document.getElementById('a-anio-min').value) || null;
+  const kmMax = parseInt(document.getElementById('a-km-max').value) || null;
+  const descMin = parseInt(document.getElementById('a-desc-min').value) || 10;
+  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
+  DB.alertas.unshift({ id:'al'+Date.now(), marca, modelo, anioMin, kmMax, descMin, activa:true });
+  saveData(DB);
+  ['a-marca','a-modelo','a-anio-min','a-km-max','a-desc-min'].forEach(id=>document.getElementById(id).value='');
+  renderAll();
+  showToast(`Alerta creada: ${marca} ${modelo}`, 'success');
+});
+
+function alertaCumplida(alerta){
+  let matches = 0;
+  DB.historial.forEach(b=>{
+    if(b.marca.toLowerCase() !== alerta.marca.toLowerCase()) return;
+    if(b.modelo.toLowerCase() !== alerta.modelo.toLowerCase()) return;
+    b.resultados.forEach(r=>{
+      const pct = diffPct(r.precio, r.valorMercado);
+      if(alerta.anioMin && r.anio < alerta.anioMin) return;
+      if(alerta.kmMax && r.km > alerta.kmMax) return;
+      if(pct === null || pct < alerta.descMin) return;
+      matches++;
+    });
+  });
+  return matches;
+}
+
+function renderAlertas(){
+  const tbody = document.getElementById('alertas-tbody');
+  const empty = document.getElementById('alertas-empty');
+  if(!DB.alertas.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = DB.alertas.map(a=>{
+    const matches = alertaCumplida(a);
+    return `<tr>
+      <td><strong>${a.marca} ${a.modelo}</strong></td>
+      <td>${a.anioMin||'—'}</td>
+      <td>${a.kmMax?a.kmMax.toLocaleString('es-AR'):'—'}</td>
+      <td>${a.descMin}%</td>
+      <td>${matches>0?`<span class="badge ok">${matches} match(es)</span>`:'<span class="badge warn">Sin matches</span>'}</td>
+      <td><button class="btn-danger small-btn" onclick="confirmDeleteAlerta('${a.id}')">Eliminar</button></td>
+    </tr>`;
+  }).join('');
+}
+function confirmDeleteAlerta(id){
+  pendingDelete = { type:'alerta', id };
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+document.getElementById('modal-confirm').addEventListener('click', ()=>{
+  if(pendingDelete){
+    if(pendingDelete.type==='busqueda') DB.historial = DB.historial.filter(b=>b.id!==pendingDelete.id);
+    if(pendingDelete.type==='alerta') DB.alertas = DB.alertas.filter(a=>a.id!==pendingDelete.id);
+    saveData(DB);
+    pendingDelete = null;
+    showToast('Eliminado correctamente', 'success');
+  }
+  document.getElementById('modal-bg').classList.remove('open');
+  renderAll();
+});
+document.getElementById('modal-cancel').addEventListener('click', ()=>{
+  pendingDelete = null;
+  document.getElementById('modal-bg').classList.remove('open');
+});
+
+// ---------- IMPORTAR ----------
+document.getElementById('btn-importar').addEventListener('click', ()=>{
+  const status = document.getElementById('import-status');
+  let data;
+  try{
+    data = JSON.parse(document.getElementById('import-json').value);
+  }catch(e){
+    status.style.color = 'var(--danger)';
+    status.textContent = 'JSON inválido: ' + e.message;
+    showToast('JSON inválido', 'error');
+    return;
+  }
+  const entry = {
+    id: data.id || ('b'+Date.now()),
+    marca: data.marca,
+    modelo: data.modelo,
+    anioMin: data.anioMin,
+    anioMax: data.anioMax,
+    fecha: new Date().toISOString(),
+    resultados: data.resultados || []
+  };
+  // si ya existe una búsqueda con ese id, la reemplaza; si no, la agrega
+  const idx = DB.historial.findIndex(b=>b.id===entry.id);
+  if(idx>=0) DB.historial[idx] = entry;
+  else DB.historial.unshift(entry);
+  saveData(DB);
+  status.style.color = 'var(--success)';
+  status.textContent = `Importado correctamente: ${entry.resultados.length} resultados para ${entry.marca} ${entry.modelo}.`;
+  renderAll();
+  showToast(`Importado: ${entry.resultados.length} resultados`, 'success');
+});
+
+document.getElementById('btn-ejemplo').addEventListener('click', ()=>{
+  const ejemplo = {
+    marca:"Peugeot", modelo:"208", anioMin:2022, anioMax:2024,
+    resultados: [
+      {titulo:"208 1.0 T200 GT CVT", anio:2024, km:14000, precio:24000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3323446644-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:21000, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.6 Active Tiptronic", anio:2022, km:49000, precio:16990, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1831325953-peugeot-208-16-active-tiptronic-_JM", valorMercado:18000, esOportunidad:false, motivo:"", riesgos:"Precio justificado por mayor km y versión de menor equipamiento"},
+      {titulo:"208 1.6 Feline Automático", anio:2022, km:6000, precio:18815, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1799124153-peugeot-208-16-feline-automatico-_JM", valorMercado:18800, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.0 T200 GT CVT", anio:2024, km:22000, precio:20000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1839304013-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:20500, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.6 Active Pack", anio:2023, km:19000, precio:18500, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3289180450-peugeot-208-16-active-pack-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.6 Active Pack Tiptronic", anio:2024, km:29897, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3152830582-peugeot-208-16-active-pack-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.6 Feline Tiptronic", anio:2022, km:37000, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3112220034-peugeot-208-16-feline-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 1.6 Style Tiptronic", anio:2023, km:36000, precio:18467, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3410941708-peugeot-208-16-style-tiptronic-_JM", valorMercado:18500, esOportunidad:false, motivo:"", riesgos:""},
+      {titulo:"208 Style At", anio:2023, km:23000, precio:18500, moneda:"USD", ubicacion:"Buenos Aires", link:"https://auto.mercadolibre.com.ar/MLA-1831467409-peugeot-208-2023-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""}
+    ]
+  };
+  document.getElementById('import-json').value = JSON.stringify(ejemplo, null, 2);
+});
+
+// ---------- RENDER ALL ----------
+function renderAll(){
+  document.getElementById('cnt-historial').textContent = DB.historial.length || '';
+  document.getElementById('cnt-oport').textContent = allOportunidades().length || '';
+  document.getElementById('cnt-alertas').textContent = DB.alertas.length || '';
+  renderUltimaBusqueda();
+  renderHistorial();
+  renderOportunidades();
+  renderAlertas();
+}
+renderAll();
+</script>
+</body>
+</html>
