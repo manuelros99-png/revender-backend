@@ -39,24 +39,59 @@ def slugify(text):
     )
 
 
+# Mapeo de nombre de provincia (como llega del form) → slug de MELI en la URL
+_MELI_PCIA_SLUGS = {
+    "buenos aires": "buenos-aires",
+    "caba": "capital-federal",
+    "capital federal": "capital-federal",
+    "córdoba": "cordoba", "cordoba": "cordoba",
+    "santa fe": "santa-fe",
+    "mendoza": "mendoza",
+    "entre ríos": "entre-rios", "entre rios": "entre-rios",
+    "la pampa": "la-pampa",
+    "neuquén": "neuquen", "neuquen": "neuquen",
+    "río negro": "rio-negro", "rio negro": "rio-negro",
+    "tucumán": "tucuman", "tucuman": "tucuman",
+    "salta": "salta", "misiones": "misiones", "chaco": "chaco",
+    "corrientes": "corrientes", "san luis": "san-luis", "san juan": "san-juan",
+    "jujuy": "jujuy", "chubut": "chubut", "santa cruz": "santa-cruz",
+    "tierra del fuego": "tierra-del-fuego", "la rioja": "la-rioja",
+    "catamarca": "catamarca", "santiago del estero": "santiago-del-estero",
+    "formosa": "formosa",
+}
+
+
 def build_meli_url(params):
-    # La versión NO va en la URL: MELI no reconoce slugs de versión en la ruta.
-    # La versión se filtra en el backend luego de extraer los resultados.
+    # Formato real de MELI Argentina:
+    # /marca/modelo/dueno-directo/{año o rango}/{marca}-{modelo}_PciaId_{pcia}_NoIndex_True
+    # La versión NO va en la URL (MELI usa IDs internos). Se filtra en el backend.
     marca = slugify(params.get("marca"))
     modelo = slugify(params.get("modelo"))
-    base = f"https://autos.mercadolibre.com.ar/{marca}/{modelo}/usados"
 
-    qs = []
+    parts = [f"https://autos.mercadolibre.com.ar/{marca}/{modelo}/dueno-directo"]
+
     anio_min = params.get("anioMin")
     anio_max = params.get("anioMax")
-    if anio_min:
-        qs.append(f"VEHICLE_YEAR_FROM={anio_min}")
-    if anio_max:
-        qs.append(f"VEHICLE_YEAR_TO={anio_max}")
-    # Siempre buscar dueño directo (vendedor particular)
-    qs.append("SELLER_TYPE=private")
+    if anio_min and anio_max:
+        year_seg = str(anio_min) if anio_min == anio_max else f"{anio_min}-{anio_max}"
+        parts.append(year_seg)
+    elif anio_min:
+        parts.append(str(anio_min))
+    elif anio_max:
+        parts.append(str(anio_max))
 
-    return base + "?" + "&".join(qs)
+    slug = f"{marca}-{modelo}"
+    zona_lower = (params.get("zona") or "").lower()
+    pcia_slug = next(
+        (v for k, v in _MELI_PCIA_SLUGS.items() if k in zona_lower),
+        None,
+    )
+    if pcia_slug:
+        slug += f"_PciaId_{pcia_slug}"
+    slug += "_NoIndex_True"
+    parts.append(slug)
+
+    return "/".join(parts)
 
 
 @app.get("/")
