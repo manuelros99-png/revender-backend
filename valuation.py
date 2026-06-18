@@ -8,13 +8,56 @@ conservadores y cualquier señal de riesgo penaliza fuerte en vez de
 descartar en silencio.
 """
 import re
-import statistics
+import time
+import urllib.request
 
-# Tipo de cambio ARS/USD usado para comparar precios en pesos contra precios
-# en dólares en igual base. Es un valor fijo a propósito (evita depender de
-# una API externa adicional) -- actualizar manualmente si se nota desfasaje
-# grande con la cotización real del momento.
-ARS_USD_RATE = 1435
+# Tipo de cambio de respaldo: se usa solo si el fetch al Banco Nación falla.
+ARS_USD_FALLBACK = 1435
+
+_bna_cache = {"rate": None, "ts": 0}
+_BNA_TTL = 3600  # 1 hora
+
+
+def fetch_bna_usd_rate():
+    """Cotización dólar oficial (promedio compra/venta) del Banco Nación Argentina."""
+    now = time.time()
+    if _bna_cache["rate"] and now - _bna_cache["ts"] < _BNA_TTL:
+        return _bna_cache["rate"]
+    try:
+        req = urllib.request.Request(
+            "https://www.bna.com.ar/Cotizaciones",
+            headers={"User-Agent": "Mozilla/5.0 (compatible; Gonzalito/1.0)"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+
+        def parse_ar(s):
+            return float(s.strip().replace(".", "").replace(",", "."))
+
+        m = re.search(
+            r"D[oó]lar\s+Estadounidense[^<]*</td>\s*<td[^>]*>([\d.,]+)</td>\s*<td[^>]*>([\d.,]+)</td>",
+            html,
+            re.IGNORECASE | re.DOTALL,
+        )
+        if m:
+            compra, venta = parse_ar(m.group(1)), parse_ar(m.group(2))
+            if compra > 100 and venta > 100:
+                rate = (compra + venta) / 2
+                _bna_cache["rate"] = rate
+                _bna_cache["ts"] = now
+                return rate
+    except Exception:
+        pass
+    return _bna_cache["rate"] or ARS_USD_FALLBACK
+
+
+def to_usd(price, currency):
+    """Convierte un precio a USD usando la cotización del BNA."""
+    if price is None:
+        return None
+    if (currency or "ARS").upper() == "ARS":
+        return price / fetch_bna_usd_rate()
+    return float(price)
 
 # Mapeo de nombres que el usuario puede poner → términos que buscar en la location
 # (que viene como "Ciudad, Provincia" de la API de MELI)
@@ -80,9 +123,7 @@ def normalize_listing(raw, search_params):
 
     price = raw.get("price")
     currency = (raw.get("currency") or "ARS").upper()
-    price_usd = None
-    if price is not None:
-        price_usd = price / ARS_USD_RATE if currency == "ARS" else price
+    price_usd = to_usd(price, currency)
 
     return {
         **raw,
@@ -111,7 +152,7 @@ def passes_hard_filters(listing, search_params):
         return False
     if km_max and km and km > km_max:
         return False
-    if precio_max and listing.get("price_usd") and listing["price_usd"] * ARS_USD_RATE > precio_max:
+    if precio_max and listing.get("price_usd") and listing["price_usd"] * fetch_bna_usd_rate() > precio_max:
         return False
     if zona_str and not _passes_zona(listing.get("location") or "", zona_str):
         return False
@@ -132,41 +173,20 @@ def _passes_zona(location, zona_str):
     return False
 
 
-def build_comparable_groups(listings):
-    """Agrupa por año (proxy simple de 'mismo segmento') para sacar una mediana."""
-    groups = {}
-    for l in listings:
-        year = l.get("year")
-        if year is None or l.get("price_usd") is None:
-            continue
-        groups.setdefault(year, []).append(l)
-    return groups
-
-
-def estimate_market_value(listing, groups):
+def estimate_market_value(candidates, exclude_url=None):
     """
-    Mediana del grupo de mismo año, con un ajuste lineal simple por
-    kilometraje respecto del km promedio del grupo. Es una heurística,
-    no una regresión -- a propósito, para no sobreingenierizar el MVP.
+    Precio mínimo (piso de mercado) entre todos los candidatos, excluyendo
+    el listing actual para que su propio precio no contamine su referencia.
+    Si una publicación está notoriamente por debajo del mínimo del resto,
+    eso indica una oportunidad real.
     """
-    year = listing.get("year")
-    group = groups.get(year, [])
-    prices = [g["price_usd"] for g in group if g.get("price_usd")]
-    if len(prices) < 2:
-        return None, 0  # sin suficientes comparables, no se puede valuar con confianza
-
-    median_price = statistics.median(prices)
-    kms = [g["km"] for g in group if g.get("km") is not None]
-    avg_km = statistics.mean(kms) if kms else None
-
-    adjusted = median_price
-    if avg_km is not None and listing.get("km") is not None and avg_km > 0:
-        km_delta = listing["km"] - avg_km
-        # Ajuste heurístico: -1.5% de valor por cada 10.000 km por encima del promedio del grupo (y viceversa)
-        adjustment_pct = -(km_delta / 10000) * 0.015
-        adjusted = median_price * (1 + adjustment_pct)
-
-    return adjusted, len(prices)
+    prices = [
+        l["price_usd"] for l in candidates
+        if l.get("price_usd") and l.get("url") != exclude_url
+    ]
+    if not prices:
+        return None, 0
+    return min(prices), len(prices)
 
 
 def score_listing(listing, market_value, comparable_count, diff_pct):
@@ -240,13 +260,16 @@ def run_valuation(listings_raw, search_params):
     excluded = [l for l in hard_filtered if l["exclusionFlags"]]
     candidates = [l for l in hard_filtered if not l["exclusionFlags"]]
 
-    groups = build_comparable_groups(candidates)
-
     opportunities = []
     discarded = []
 
     for listing in candidates:
-        market_value, comparable_count = estimate_market_value(listing, groups)
+        # Valor de mercado = precio mínimo del resto de candidatos (leave-one-out).
+        # Si esta publicación es notoriamente más barata que todas las demás, la diferencia
+        # será positiva y se evaluará como oportunidad.
+        market_value, comparable_count = estimate_market_value(
+            candidates, exclude_url=listing.get("url")
+        )
         price_usd = listing.get("price_usd")
         diff_pct = None
         if market_value and price_usd:

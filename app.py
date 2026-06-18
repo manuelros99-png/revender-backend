@@ -40,12 +40,23 @@ def slugify(text):
 
 
 def build_meli_url(params):
-    # La versión NO va en la URL: MELI no reconoce slugs de versión y devuelve
-    # /marca/undefined. La versión se filtra en el backend después de extraer.
-    parts = [slugify(params.get("marca")), slugify(params.get("modelo"))]
-    parts.append("usados")
-    slug = "-".join(p for p in parts if p)
-    return f"https://listado.mercadolibre.com.ar/{slug}"
+    # La versión NO va en la URL: MELI no reconoce slugs de versión en la ruta.
+    # La versión se filtra en el backend luego de extraer los resultados.
+    marca = slugify(params.get("marca"))
+    modelo = slugify(params.get("modelo"))
+    base = f"https://autos.mercadolibre.com.ar/{marca}/{modelo}/usados"
+
+    qs = []
+    anio_min = params.get("anioMin")
+    anio_max = params.get("anioMax")
+    if anio_min:
+        qs.append(f"VEHICLE_YEAR_FROM={anio_min}")
+    if anio_max:
+        qs.append(f"VEHICLE_YEAR_TO={anio_max}")
+    # Siempre buscar dueño directo (vendedor particular)
+    qs.append("SELLER_TYPE=private")
+
+    return base + "?" + "&".join(qs)
 
 
 @app.get("/")
@@ -150,8 +161,8 @@ def _serialize_rows(rows):
             "titulo": l.get("title"),
             "anio": l.get("year"),
             "km": l.get("km"),
-            "precio": l.get("price"),
-            "moneda": l.get("currency"),
+            "precio": round(l["price_usd"], 0) if l.get("price_usd") is not None else None,
+            "moneda": "USD",
             "ubicacion": l.get("location"),
             "link": l.get("url"),
             "valorMercado": round(row["market_value_usd"], 0) if row["market_value_usd"] else None,
@@ -182,12 +193,13 @@ def get_search_status(search_id):
 
 
 def _row_from_db(r):
+    price_usd = valuation.to_usd(r.get("price"), r.get("currency"))
     return {
         "titulo": r.get("title"),
         "anio": r.get("year"),
         "km": r.get("km"),
-        "precio": r.get("price"),
-        "moneda": r.get("currency"),
+        "precio": round(price_usd, 0) if price_usd is not None else None,
+        "moneda": "USD",
         "ubicacion": r.get("location"),
         "link": r.get("url"),
         "valorMercado": round(r["market_value_usd"], 0) if r.get("market_value_usd") else None,
