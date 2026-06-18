@@ -1,66 +1,71 @@
 """
-Normalización, motor de exclusiones, comparables, valuación y scoring.
+Normalización, filtros, y ranking de los 10 autos más baratos.
 
-Deliberadamente simple (sin pandas, sin ML) -- estadística básica con la
-librería estándar. Esto es un MVP: la regla general es "mejor cero
-resultados que una oportunidad dudosa", así que los umbrales son
-conservadores y cualquier señal de riesgo penaliza fuerte en vez de
-descartar en silencio.
+Precios siempre en USD usando la cotización del dólar Blue (dolarhoy.com).
 """
 import re
 import time
 import urllib.request
 
-# Tipo de cambio de respaldo: se usa solo si el fetch al Banco Nación falla.
-ARS_USD_FALLBACK = 1435
+ARS_USD_FALLBACK = 1435  # fallback si dolarhoy.com no responde
 
-_bna_cache = {"rate": None, "ts": 0}
-_BNA_TTL = 3600  # 1 hora
+_blue_cache = {"rate": None, "ts": 0}
+_CACHE_TTL = 3600  # 1 hora
 
 
-def fetch_bna_usd_rate():
-    """Cotización dólar oficial (promedio compra/venta) del Banco Nación Argentina."""
+def fetch_blue_usd_rate():
+    """Cotización dólar Blue (promedio compra/venta) de dolarhoy.com."""
     now = time.time()
-    if _bna_cache["rate"] and now - _bna_cache["ts"] < _BNA_TTL:
-        return _bna_cache["rate"]
+    if _blue_cache["rate"] and now - _blue_cache["ts"] < _CACHE_TTL:
+        return _blue_cache["rate"]
     try:
         req = urllib.request.Request(
-            "https://www.bna.com.ar/Cotizaciones",
-            headers={"User-Agent": "Mozilla/5.0 (compatible; Gonzalito/1.0)"},
+            "https://dolarhoy.com/",
+            headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"},
         )
         with urllib.request.urlopen(req, timeout=8) as resp:
             html = resp.read().decode("utf-8", errors="ignore")
 
-        def parse_ar(s):
-            return float(s.strip().replace(".", "").replace(",", "."))
+        def parse_peso(s):
+            # Formato argentino: "1.200" o "1,200" → 1200
+            return float(s.strip().replace(".", "").replace(",", ""))
 
+        # dolarhoy.com muestra "Compra" y "Venta" dentro de la sección Blue
+        # Buscamos la sección que contenga "blue" y extraemos los dos valores numéricos
         m = re.search(
-            r"D[oó]lar\s+Estadounidense[^<]*</td>\s*<td[^>]*>([\d.,]+)</td>\s*<td[^>]*>([\d.,]+)</td>",
+            r"blue.{0,400}?compra.{0,100}?\$?\s*([\d.,]+).{0,200}?venta.{0,100}?\$?\s*([\d.,]+)",
             html,
             re.IGNORECASE | re.DOTALL,
         )
+        if not m:
+            # Intento alternativo: buscar dos números grandes cerca de "blue"
+            m = re.search(
+                r"blue[^<]{0,600}?([\d]{3,4})[^<]{0,200}?([\d]{3,4})",
+                html,
+                re.IGNORECASE | re.DOTALL,
+            )
         if m:
-            compra, venta = parse_ar(m.group(1)), parse_ar(m.group(2))
+            compra = parse_peso(m.group(1))
+            venta = parse_peso(m.group(2))
             if compra > 100 and venta > 100:
                 rate = (compra + venta) / 2
-                _bna_cache["rate"] = rate
-                _bna_cache["ts"] = now
+                _blue_cache["rate"] = rate
+                _blue_cache["ts"] = now
                 return rate
     except Exception:
         pass
-    return _bna_cache["rate"] or ARS_USD_FALLBACK
+    return _blue_cache["rate"] or ARS_USD_FALLBACK
 
 
 def to_usd(price, currency):
-    """Convierte un precio a USD usando la cotización del BNA."""
+    """Convierte un precio a USD usando la cotización del dólar Blue."""
     if price is None:
         return None
     if (currency or "ARS").upper() == "ARS":
-        return price / fetch_bna_usd_rate()
+        return price / fetch_blue_usd_rate()
     return float(price)
 
-# Mapeo de nombres que el usuario puede poner → términos que buscar en la location
-# (que viene como "Ciudad, Provincia" de la API de MELI)
+
 ZONA_ALIASES = {
     "caba": ["capital federal", "ciudad autónoma", "ciudad autonoma", "caba"],
     "buenos aires": ["buenos aires"],
@@ -88,7 +93,6 @@ ZONA_ALIASES = {
     "formosa": ["formosa"],
 }
 
-# Frases de varias palabras o sin ambigüedad numérica -- substring simple es seguro.
 EXCLUSION_KEYWORDS = [
     "plan de ahorro", "plan ahorro", "cuotas", "anticipo", "entrega y cuotas",
     "adjudicado", "financiado", "prenda", "prendado", "deuda", "sucesión",
@@ -96,10 +100,6 @@ EXCLUSION_KEYWORDS = [
     "sin transferir", "titular fallecido", "solo partes",
 ]
 
-# "0km"/"0 km" necesitan regex con límite de palabra: un substring naive
-# matchea falsamente cualquier kilometraje que termine en 0 antes de "km"
-# (ej. "49000 km" contiene "...0 km"). (?<!\d) exige que el 0 no esté
-# precedido por otro dígito.
 EXCLUSION_PATTERNS = [
     re.compile(r"(?<!\d)0\s?km\b"),
 ]
@@ -135,7 +135,7 @@ def normalize_listing(raw, search_params):
 
 
 def passes_hard_filters(listing, search_params):
-    """Filtros duros del usuario (año/km/precio/zona/versión) -- si no cumple, ni se compara."""
+    """Filtros del usuario: año, km, precio máximo, zona, versión."""
     anio_min = search_params.get("anioMin")
     anio_max = search_params.get("anioMax")
     km_max = search_params.get("kmMax")
@@ -152,7 +152,7 @@ def passes_hard_filters(listing, search_params):
         return False
     if km_max and km and km > km_max:
         return False
-    if precio_max and listing.get("price_usd") and listing["price_usd"] * fetch_bna_usd_rate() > precio_max:
+    if precio_max and listing.get("price_usd") and listing["price_usd"] * fetch_blue_usd_rate() > precio_max:
         return False
     if zona_str and not _passes_zona(listing.get("location") or "", zona_str):
         return False
@@ -164,7 +164,6 @@ def passes_hard_filters(listing, search_params):
 
 
 def _passes_zona(location, zona_str):
-    """True si la ubicación de la publicación coincide con alguna zona solicitada."""
     location_lower = location.lower()
     for zona in [z.strip().lower() for z in zona_str.split(",") if z.strip()]:
         aliases = ZONA_ALIASES.get(zona, [zona])
@@ -173,143 +172,49 @@ def _passes_zona(location, zona_str):
     return False
 
 
-def estimate_market_value(candidates, exclude_url=None):
-    """
-    Precio mínimo (piso de mercado) entre todos los candidatos, excluyendo
-    el listing actual para que su propio precio no contamine su referencia.
-    Si una publicación está notoriamente por debajo del mínimo del resto,
-    eso indica una oportunidad real.
-    """
-    prices = [
-        l["price_usd"] for l in candidates
-        if l.get("price_usd") and l.get("url") != exclude_url
-    ]
-    if not prices:
-        return None, 0
-    return min(prices), len(prices)
-
-
-def score_listing(listing, market_value, comparable_count, diff_pct):
-    """Score 0-100. Penaliza fuerte ante riesgos o datos incompletos."""
-    if market_value is None:
-        return 0, "requiere revisión manual", "", "Sin suficientes comparables para estimar valor de mercado"
-
-    score = 0
-    motivos = []
-    riesgos = []
-
-    # Descuento contra comparables (peso alto)
-    if diff_pct >= 20:
-        score += 40
-        motivos.append(f"{diff_pct:.0f}% por debajo del valor estimado de mercado")
-    elif diff_pct >= 10:
-        score += 30
-        motivos.append(f"{diff_pct:.0f}% por debajo del valor estimado de mercado")
-    elif diff_pct > 0:
-        score += 10
-
-    # Liquidez del grupo comparable (peso medio)
-    if comparable_count >= 5:
-        score += 15
-    elif comparable_count >= 3:
-        score += 8
-
-    # Completitud de datos (peso medio, penaliza si falta algo clave)
-    missing = [k for k in ("year", "km", "location") if not listing.get(k)]
-    if not missing:
-        score += 15
-    else:
-        score -= 5 * len(missing)
-        riesgos.append(f"Datos incompletos: falta {', '.join(missing)}")
-
-    # Riesgos detectados en el texto (penalización fuerte)
-    if listing.get("riskFlags"):
-        score -= 20 * len(listing["riskFlags"])
-        riesgos.append("Palabras de riesgo detectadas en la publicación: " + ", ".join(listing["riskFlags"]))
-
-    # Precio sospechosamente bajo (>35% bajo mercado) -> no es señal positiva ciega, va a revisión manual
-    if diff_pct >= 35:
-        riesgos.append("Descuento inusualmente alto (>35%) -- revisar manualmente antes de contactar, podría haber un error de publicación o un problema no declarado")
-        score = min(score, 55)
-
-    score = max(0, min(100, score))
-
-    if riesgos:
-        recommendation = "revisar documentación" if score >= 40 else "descartar"
-    elif score >= 70:
-        recommendation = "contactar rápido"
-    elif score >= 40:
-        recommendation = "revisar mecánica"
-    else:
-        recommendation = "descartar"
-
-    return score, recommendation, " · ".join(motivos), " · ".join(riesgos)
-
-
 def run_valuation(listings_raw, search_params):
     """
-    Pipeline completo: normaliza, filtra duro, excluye, agrupa comparables,
-    valúa y scorea. Devuelve (oportunidades, descartadas) en el shape que
-    espera el dashboard.
+    Filtra, normaliza y devuelve un ranking de los 10 más baratos en USD Blue.
+    Los primeros 10 van como 'oportunidades' (top del ranking), el resto como descartados.
     """
-    threshold = search_params.get("threshold", 12)
-
     normalized = [normalize_listing(l, search_params) for l in listings_raw]
     hard_filtered = [l for l in normalized if passes_hard_filters(l, search_params)]
 
     excluded = [l for l in hard_filtered if l["exclusionFlags"]]
     candidates = [l for l in hard_filtered if not l["exclusionFlags"]]
 
-    opportunities = []
-    discarded = []
+    # Ordenar por precio USD Blue (más barato primero); sin precio al final
+    candidates.sort(key=lambda l: l.get("price_usd") or float("inf"))
 
-    for listing in candidates:
-        # Valor de mercado = precio mínimo del resto de candidatos (leave-one-out).
-        # Si esta publicación es notoriamente más barata que todas las demás, la diferencia
-        # será positiva y se evaluará como oportunidad.
-        market_value, comparable_count = estimate_market_value(
-            candidates, exclude_url=listing.get("url")
-        )
+    ranking = []
+    for i, listing in enumerate(candidates):
+        rank = i + 1
         price_usd = listing.get("price_usd")
-        diff_pct = None
-        if market_value and price_usd:
-            diff_pct = round(((market_value - price_usd) / market_value) * 100, 1)
-
-        score, recommendation, motivo, riesgos = score_listing(
-            listing, market_value, comparable_count, diff_pct or 0
-        )
-
-        is_opportunity = bool(
-            diff_pct is not None and diff_pct >= threshold and not listing["riskFlags"]
-        )
-
-        result_row = {
+        risk_txt = " · ".join(listing.get("riskFlags", []))
+        is_top10 = rank <= 10
+        ranking.append({
             "listing": listing,
-            "market_value_usd": market_value,
-            "diff_pct": diff_pct,
-            "score": score,
-            "recommendation": recommendation,
-            "motivo": motivo,
-            "riesgos": riesgos,
-            "is_opportunity": is_opportunity,
-        }
-
-        if is_opportunity:
-            opportunities.append(result_row)
-        else:
-            discarded.append(result_row)
+            "market_value_usd": None,
+            "diff_pct": None,
+            "score": rank,
+            "recommendation": "contactar rápido" if rank <= 3 else ("ver presencialmente" if rank <= 10 else "más caro"),
+            "motivo": f"#{rank} más barato",
+            "riesgos": risk_txt,
+            "is_opportunity": is_top10,
+        })
 
     for listing in excluded:
-        discarded.append({
+        ranking.append({
             "listing": listing,
             "market_value_usd": None,
             "diff_pct": None,
             "score": 0,
             "recommendation": "descartar",
             "motivo": "",
-            "riesgos": "Excluido automáticamente: " + ", ".join(listing["exclusionFlags"]),
+            "riesgos": "Excluido: " + ", ".join(listing["exclusionFlags"]),
             "is_opportunity": False,
         })
 
-    opportunities.sort(key=lambda r: r["score"], reverse=True)
+    opportunities = [r for r in ranking if r["is_opportunity"]]
+    discarded = [r for r in ranking if not r["is_opportunity"]]
     return opportunities, discarded

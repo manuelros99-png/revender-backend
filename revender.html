@@ -283,7 +283,7 @@
       </button>
       <button type="button" class="item" data-view="oportunidades">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-        <span class="item-label">Oportunidades</span><span class="count" id="cnt-oport"></span>
+        <span class="item-label">Top 10</span><span class="count" id="cnt-oport"></span>
       </button>
       <button type="button" class="item" data-view="alertas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -378,8 +378,8 @@
 
     <!-- OPORTUNIDADES -->
     <section id="view-oportunidades" style="display:none">
-      <h2>Oportunidades detectadas</h2>
-      <div class="sub">Publicaciones marcadas como oportunidad real (≥10% bajo valor de mercado, km razonable, sin riesgos evidentes).</div>
+      <h2>Top 10 más baratos</h2>
+      <div class="sub">Los 10 autos más baratos encontrados por búsqueda, dueño directo, con precios en USD al valor del dólar Blue (promedio compra-venta, dolarhoy.com).</div>
       <div class="grid-stats" id="oport-stats"></div>
       <div class="card glass">
         <div class="toolbar">
@@ -394,13 +394,13 @@
         </div>
         <div class="table-scroll">
         <table>
-          <thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio</th><th>Valor Mercado</th><th>Diferencia</th><th>Score</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
           <tbody id="oport-tbody"></tbody>
         </table>
         </div>
         <div id="oport-empty" class="empty" style="display:none">
           <div class="big">🔎</div>
-          No hay oportunidades detectadas todavía.<br>Corré una búsqueda y cargá los resultados.
+          No hay resultados todavía.<br>Corré una búsqueda para ver el ranking.
         </div>
       </div>
     </section>
@@ -465,7 +465,7 @@
     </button>
     <button type="button" class="item tab-item" data-view="oportunidades">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-      <span>Oport.</span>
+      <span>Top 10</span>
     </button>
     <button type="button" class="item tab-item" data-view="alertas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -888,16 +888,16 @@ function renderHistorial(){
   }
   cont.innerHTML = DB.historial.map(b=>{
     const rows = b.resultados.map(r=>{
-      const pct = diffPct(r.precio, r.valorMercado);
+      const rankLabel = r.esOportunidad
+        ? (r.score <= 3 ? `<span class="badge ok">#${r.score||'?'}</span>` : `<span class="pill">#${r.score||'?'}</span>`)
+        : '<span class="badge no">—</span>';
       return `<tr>
         <td>${r.titulo}</td>
         <td>${r.anio}</td>
         <td>${r.km?.toLocaleString('es-AR')||'—'} km</td>
-        <td>${fmtMoney(r.precio, r.moneda)}</td>
-        <td>${r.valorMercado?fmtMoney(r.valorMercado,'USD'):'—'}</td>
-        <td>${pct!==null?(pct+'%'):'—'}</td>
+        <td><strong>${fmtMoney(r.precio, 'USD')}</strong></td>
         <td>${publicadoLabel(r.diasPublicado)}</td>
-        <td>${r.esOportunidad?'<span class="badge ok">Oportunidad</span>':'<span class="badge no">No</span>'}</td>
+        <td>${rankLabel}</td>
         <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
       </tr>`;
     }).join('');
@@ -912,7 +912,7 @@ function renderHistorial(){
           <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
         </div>
       </div>
-      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio</th><th>Val. Mercado</th><th>Dif.</th><th>Publicado</th><th>Estado</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Publicado</th><th>Top 10</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
     </div>`;
   }).join('');
 }
@@ -960,34 +960,34 @@ function renderOportunidades(){
   const empty = document.getElementById('oport-empty');
   document.getElementById('oport-count-pill').textContent = ops.length + ' resultado(s)';
 
-  // stats
   const totalBusquedas = DB.historial.length;
   const totalResultados = DB.historial.reduce((a,b)=>a+b.resultados.length,0);
-  const totalOport = allOportunidades().length;
-  const avgDiff = (()=>{
-    const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
-    if(!diffs.length) return '—';
-    return Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length)+'%';
+  const totalTop10 = allOportunidades().length;
+  const precioMin = (()=>{
+    const precios = allOportunidades().map(o=>o.precio).filter(x=>x!=null);
+    if(!precios.length) return '—';
+    return fmtMoney(Math.min(...precios), 'USD');
   })();
   document.getElementById('oport-stats').innerHTML = `
     <div class="stat glass"><div class="v">${totalBusquedas}</div><div class="l">Búsquedas realizadas</div></div>
     <div class="stat glass"><div class="v">${totalResultados}</div><div class="l">Publicaciones analizadas</div></div>
-    <div class="stat glass"><div class="v" style="color:var(--success)">${totalOport}</div><div class="l">Oportunidades detectadas</div></div>
-    <div class="stat glass"><div class="v">${avgDiff}</div><div class="l">Diferencia promedio vs. mercado</div></div>
+    <div class="stat glass"><div class="v" style="color:var(--success)">${totalTop10}</div><div class="l">En el top 10</div></div>
+    <div class="stat glass"><div class="v">${precioMin}</div><div class="l">Precio más bajo encontrado</div></div>
   `;
 
   if(!ops.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   tbody.innerHTML = ops.map(o=>{
-    const pct = diffPct(o.precio, o.valorMercado);
+    const rank = o.score || '—';
+    const rankBadge = rank <= 3
+      ? `<span class="badge ok">#${rank}</span>`
+      : `<span class="pill">#${rank}</span>`;
     return `<tr>
-      <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.motivo?`<div class="sub" style="margin:2px 0 0;color:var(--success)">${o.motivo}</div>`:''}${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
-      <td>${o.anio}</td>
+      <td>${rankBadge}</td>
+      <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
+      <td>${o.anio||'—'}</td>
       <td>${o.km?.toLocaleString('es-AR')||'—'}</td>
-      <td>${fmtMoney(o.precio,o.moneda)}</td>
-      <td>${fmtMoney(o.valorMercado,'USD')}</td>
-      <td><span class="badge ${pct>=10?'ok':'warn'}">${pct}% ↓</span></td>
-      <td>${o.score!=null?`<span class="pill">${Math.round(o.score)}/100</span>`:'—'}</td>
+      <td><strong>${fmtMoney(o.precio,'USD')}</strong></td>
       <td>${publicadoLabel(o.diasPublicado)}</td>
       <td>${o.ubicacion||'—'}</td>
       <td>${o.link?`<a class="link" href="${o.link}" target="_blank">Ver →</a>`:''}</td>
