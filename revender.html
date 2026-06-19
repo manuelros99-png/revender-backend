@@ -653,6 +653,10 @@ window.addEventListener('gonzalito:extension-ready', () => {
   document.getElementById('extension-hint').style.display = 'none';
 });
 
+window.addEventListener('gonzalito:context-lost', () => {
+  showToast('La extensión fue recargada — recargá esta página (F5) para seguir usándola', 'error');
+});
+
 setTimeout(() => {
   if (!extensionDetected) {
     document.getElementById('extension-hint').style.display = 'block';
