@@ -172,6 +172,21 @@ def _passes_zona(location, zona_str):
     return False
 
 
+def _median_price(candidates):
+    """Mediana del precio USD de los candidatos válidos (excluyendo el 10% más caro)."""
+    prices = sorted(
+        [l["price_usd"] for l in candidates if l.get("price_usd") is not None]
+    )
+    if not prices:
+        return None
+    cutoff = max(1, int(len(prices) * 0.9))
+    trimmed = prices[:cutoff]
+    mid = len(trimmed) // 2
+    if len(trimmed) % 2 == 1:
+        return trimmed[mid]
+    return (trimmed[mid - 1] + trimmed[mid]) / 2
+
+
 def run_valuation(listings_raw, search_params):
     """
     Filtra, normaliza y devuelve un ranking de los 10 más baratos en USD Blue.
@@ -186,19 +201,48 @@ def run_valuation(listings_raw, search_params):
     # Ordenar por precio USD Blue (más barato primero); sin precio al final
     candidates.sort(key=lambda l: l.get("price_usd") or float("inf"))
 
+    market_value_usd = _median_price(candidates)
+
     ranking = []
     for i, listing in enumerate(candidates):
         rank = i + 1
         price_usd = listing.get("price_usd")
+        diff_pct = (
+            round(((market_value_usd - price_usd) / market_value_usd) * 100, 1)
+            if (market_value_usd and price_usd)
+            else None
+        )
         risk_txt = " · ".join(listing.get("riskFlags", []))
         is_top10 = rank <= 10
+
+        if diff_pct is not None and diff_pct >= 15:
+            rec = "contactar rápido"
+        elif diff_pct is not None and diff_pct >= 10:
+            rec = "ver presencialmente"
+        elif rank <= 3:
+            rec = "contactar rápido"
+        elif rank <= 10:
+            rec = "ver presencialmente"
+        else:
+            rec = "más caro"
+
+        if diff_pct is not None:
+            if diff_pct > 0:
+                motivo = f"#{rank} más barato · {diff_pct:+.0f}% bajo mercado"
+            elif diff_pct < 0:
+                motivo = f"#{rank} más barato · {abs(diff_pct):.0f}% sobre mercado"
+            else:
+                motivo = f"#{rank} más barato · precio de mercado"
+        else:
+            motivo = f"#{rank} más barato"
+
         ranking.append({
             "listing": listing,
-            "market_value_usd": None,
-            "diff_pct": None,
+            "market_value_usd": market_value_usd,
+            "diff_pct": diff_pct,
             "score": rank,
-            "recommendation": "contactar rápido" if rank <= 3 else ("ver presencialmente" if rank <= 10 else "más caro"),
-            "motivo": f"#{rank} más barato",
+            "recommendation": rec,
+            "motivo": motivo,
             "riesgos": risk_txt,
             "is_opportunity": is_top10,
         })
@@ -206,7 +250,7 @@ def run_valuation(listings_raw, search_params):
     for listing in excluded:
         ranking.append({
             "listing": listing,
-            "market_value_usd": None,
+            "market_value_usd": market_value_usd,
             "diff_pct": None,
             "score": 0,
             "recommendation": "descartar",

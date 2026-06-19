@@ -394,7 +394,7 @@
         </div>
         <div class="table-scroll">
         <table>
-          <thead><tr><th>#</th><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Valor Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
           <tbody id="oport-tbody"></tbody>
         </table>
         </div>
@@ -891,11 +891,19 @@ function renderHistorial(){
       const rankLabel = r.esOportunidad
         ? (r.score <= 3 ? `<span class="badge ok">#${r.score||'?'}</span>` : `<span class="pill">#${r.score||'?'}</span>`)
         : '<span class="badge no">—</span>';
+      const pct = diffPct(r.precio, r.valorMercado);
+      const pctLabel = pct === null ? '<span class="sub">—</span>'
+        : pct >= 15 ? `<span class="badge ok">+${pct}% 🔥</span>`
+        : pct >= 10 ? `<span class="badge ok">+${pct}%</span>`
+        : pct > 0  ? `<span class="badge warn">+${pct}%</span>`
+        : `<span class="badge no">${pct}%</span>`;
       return `<tr>
         <td>${r.titulo}</td>
         <td>${r.anio}</td>
         <td>${r.km?.toLocaleString('es-AR')||'—'} km</td>
         <td><strong>${fmtMoney(r.precio, 'USD')}</strong></td>
+        <td>${r.valorMercado ? fmtMoney(r.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
+        <td>${pctLabel}</td>
         <td>${publicadoLabel(r.diasPublicado)}</td>
         <td>${rankLabel}</td>
         <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
@@ -912,7 +920,7 @@ function renderHistorial(){
           <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
         </div>
       </div>
-      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Publicado</th><th>Top 10</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Top 10</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
     </div>`;
   }).join('');
 }
@@ -968,11 +976,17 @@ function renderOportunidades(){
     if(!precios.length) return '—';
     return fmtMoney(Math.min(...precios), 'USD');
   })();
+  const avgDiff = (()=>{
+    const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+    if(!diffs.length) return '—';
+    return '+' + Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length) + '%';
+  })();
   document.getElementById('oport-stats').innerHTML = `
     <div class="stat glass"><div class="v">${totalBusquedas}</div><div class="l">Búsquedas realizadas</div></div>
     <div class="stat glass"><div class="v">${totalResultados}</div><div class="l">Publicaciones analizadas</div></div>
     <div class="stat glass"><div class="v" style="color:var(--success)">${totalTop10}</div><div class="l">En el top 10</div></div>
     <div class="stat glass"><div class="v">${precioMin}</div><div class="l">Precio más bajo encontrado</div></div>
+    <div class="stat glass"><div class="v" style="color:var(--success)">${avgDiff}</div><div class="l">Reboleo promedio vs. mercado</div></div>
   `;
 
   if(!ops.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
@@ -982,12 +996,20 @@ function renderOportunidades(){
     const rankBadge = rank <= 3
       ? `<span class="badge ok">#${rank}</span>`
       : `<span class="pill">#${rank}</span>`;
+    const pct = diffPct(o.precio, o.valorMercado);
+    const pctBadge = pct === null ? '<span class="sub">—</span>'
+      : pct >= 15 ? `<span class="badge ok">+${pct}% 🔥</span>`
+      : pct >= 10 ? `<span class="badge ok">+${pct}%</span>`
+      : pct > 0  ? `<span class="badge warn">+${pct}%</span>`
+      : `<span class="badge no">${pct}%</span>`;
     return `<tr>
       <td>${rankBadge}</td>
       <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
       <td>${o.anio||'—'}</td>
       <td>${o.km?.toLocaleString('es-AR')||'—'}</td>
       <td><strong>${fmtMoney(o.precio,'USD')}</strong></td>
+      <td>${o.valorMercado ? fmtMoney(o.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
+      <td>${pctBadge}</td>
       <td>${publicadoLabel(o.diasPublicado)}</td>
       <td>${o.ubicacion||'—'}</td>
       <td>${o.link?`<a class="link" href="${o.link}" target="_blank">Ver →</a>`:''}</td>
