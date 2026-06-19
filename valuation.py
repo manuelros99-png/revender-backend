@@ -181,25 +181,11 @@ def _passes_zona(location, zona_str):
     return False
 
 
-def _median_price(candidates):
-    """Mediana del precio USD de los candidatos válidos (excluyendo el 10% más caro)."""
-    prices = sorted(
-        [l["price_usd"] for l in candidates if l.get("price_usd") is not None]
-    )
-    if not prices:
-        return None
-    cutoff = max(1, int(len(prices) * 0.9))
-    trimmed = prices[:cutoff]
-    mid = len(trimmed) // 2
-    if len(trimmed) % 2 == 1:
-        return trimmed[mid]
-    return (trimmed[mid - 1] + trimmed[mid]) / 2
-
-
 def run_valuation(listings_raw, search_params):
     """
-    Filtra, normaliza y devuelve un ranking de los 10 más baratos en USD Blue.
-    Los primeros 10 van como 'oportunidades' (top del ranking), el resto como descartados.
+    Filtra, normaliza y valúa listings.
+    Valor de mercado = precio mínimo de candidatos × 1.05.
+    Oportunidades = todos los que están por debajo de ese valor.
     """
     normalized = [normalize_listing(l, search_params) for l in listings_raw]
     hard_filtered = [l for l in normalized if passes_hard_filters(l, search_params)]
@@ -210,7 +196,9 @@ def run_valuation(listings_raw, search_params):
     # Ordenar por precio USD Blue (más barato primero); sin precio al final
     candidates.sort(key=lambda l: l.get("price_usd") or float("inf"))
 
-    market_value_usd = _median_price(candidates)
+    # Valor de mercado = precio mínimo + 5%
+    min_price = next((l["price_usd"] for l in candidates if l.get("price_usd") is not None), None)
+    market_value_usd = round(min_price * 1.05, 2) if min_price is not None else None
 
     ranking = []
     for i, listing in enumerate(candidates):
@@ -222,28 +210,21 @@ def run_valuation(listings_raw, search_params):
             else None
         )
         risk_txt = " · ".join(listing.get("riskFlags", []))
-        is_top10 = rank <= 10
+        is_opportunity = diff_pct is not None and diff_pct > 0
 
-        if diff_pct is not None and diff_pct >= 15:
+        if is_opportunity and rank <= 3:
             rec = "contactar rápido"
-        elif diff_pct is not None and diff_pct >= 10:
-            rec = "ver presencialmente"
-        elif rank <= 3:
-            rec = "contactar rápido"
-        elif rank <= 10:
+        elif is_opportunity:
             rec = "ver presencialmente"
         else:
             rec = "más caro"
 
-        if diff_pct is not None:
-            if diff_pct > 0:
-                motivo = f"#{rank} más barato · {diff_pct:+.0f}% bajo mercado"
-            elif diff_pct < 0:
-                motivo = f"#{rank} más barato · {abs(diff_pct):.0f}% sobre mercado"
-            else:
-                motivo = f"#{rank} más barato · precio de mercado"
+        if diff_pct is not None and diff_pct > 0:
+            motivo = f"#{rank} · {diff_pct:.1f}% bajo valor de mercado"
+        elif diff_pct is not None and diff_pct < 0:
+            motivo = f"#{rank} · {abs(diff_pct):.1f}% sobre valor de mercado"
         else:
-            motivo = f"#{rank} más barato"
+            motivo = f"#{rank}"
 
         ranking.append({
             "listing": listing,
@@ -253,7 +234,7 @@ def run_valuation(listings_raw, search_params):
             "recommendation": rec,
             "motivo": motivo,
             "riesgos": risk_txt,
-            "is_opportunity": is_top10,
+            "is_opportunity": is_opportunity,
         })
 
     for listing in excluded:
