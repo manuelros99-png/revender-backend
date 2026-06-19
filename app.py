@@ -61,12 +61,18 @@ _MELI_PCIA_SLUGS = {
 }
 
 
+_ANTIGUEDAD_SLUGS = {
+    "hoy": "_PublishedToday_YES",
+    "semana": "_PublishedLastWeek_YES",
+    "mes": "_PublishedLastMonth_YES",
+}
+
+
 def build_meli_url(params):
-    # Formato real de MELI Argentina:
-    # /marca/modelo/dueno-directo/{año o rango}/{marca}-{modelo}_PciaId_{pcia}_NoIndex_True
-    # La versión NO va en la URL (MELI usa IDs internos). Se filtra en el backend.
     marca = slugify(params.get("marca"))
     modelo = slugify(params.get("modelo"))
+    version = slugify(params.get("version") or "")
+    antiguedad = (params.get("antiguedad") or "").strip()
 
     parts = [f"https://autos.mercadolibre.com.ar/{marca}/{modelo}/dueno-directo"]
 
@@ -80,7 +86,18 @@ def build_meli_url(params):
     elif anio_max:
         parts.append(str(anio_max))
 
+    # Slug: marca-modelo[-version]-usados
     slug = f"{marca}-{modelo}"
+    if version:
+        slug += f"-{version}"
+    slug += "-usados"
+
+    if antiguedad in _ANTIGUEDAD_SLUGS:
+        slug += _ANTIGUEDAD_SLUGS[antiguedad]
+
+    # Condición "usado" (ID interno fijo de MELI Argentina)
+    slug += "_ITEM*CONDITION_2230581"
+
     zona_lower = (params.get("zona") or "").lower()
     pcia_slug = next(
         (v for k, v in _MELI_PCIA_SLUGS.items() if k in zona_lower),

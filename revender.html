@@ -745,6 +745,7 @@ document.getElementById('btn-buscar-extension').addEventListener('click', () => 
     kmMax: parseInt(document.getElementById('f-km-max').value) || null,
     precioMax: parseFloat(document.getElementById('f-precio-max').value) || null,
     zona: describeZona({ provincias: getSelectedProvincias(), ciudad: document.getElementById('f-ciudad').value.trim(), radioKm: parseInt(document.getElementById('f-radio-km').value)||null }),
+    antiguedad: document.getElementById('f-antiguedad').value || '',
     threshold: parseInt(document.getElementById('f-threshold').value) || 12
   };
   lastExtensionParams = params;
