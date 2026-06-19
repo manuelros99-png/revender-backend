@@ -140,7 +140,7 @@ def passes_hard_filters(listing, search_params):
     anio_max = search_params.get("anioMax")
     km_max = search_params.get("kmMax")
     precio_max = search_params.get("precioMax")
-    zona_str = search_params.get("zona") or ""
+    zona_str = (search_params.get("zona") or "").strip()
     version = (search_params.get("version") or "").strip().lower()
 
     year = listing.get("year")
@@ -154,7 +154,9 @@ def passes_hard_filters(listing, search_params):
         return False
     if precio_max and listing.get("price_usd") and listing["price_usd"] * fetch_blue_usd_rate() > precio_max:
         return False
-    if zona_str and not _passes_zona(listing.get("location") or "", zona_str):
+    # "Todo el país" significa sin filtro de zona
+    zona_activa = zona_str and zona_str.lower() not in ("todo el país", "todo el pais")
+    if zona_activa and not _passes_zona(listing.get("location") or "", zona_str):
         return False
     if version:
         title = (listing.get("title") or "").lower()
@@ -165,8 +167,15 @@ def passes_hard_filters(listing, search_params):
 
 def _passes_zona(location, zona_str):
     location_lower = location.lower()
-    for zona in [z.strip().lower() for z in zona_str.split(",") if z.strip()]:
-        aliases = ZONA_ALIASES.get(zona, [zona])
+    # El formato es "Prov1, Prov2 · Ciudad (radio Xkm)".
+    # Separamos por " · " primero, luego por "," para obtener cada zona individual.
+    raw_parts = []
+    for segment in zona_str.split(" · "):
+        raw_parts.extend(segment.split(","))
+    for zona in [p.strip().lower() for p in raw_parts if p.strip()]:
+        # Quitar aclaraciones de radio entre paréntesis: "mar del plata (radio 100 km)" → "mar del plata"
+        zona_clean = zona.split("(")[0].strip()
+        aliases = ZONA_ALIASES.get(zona_clean, [zona_clean])
         if any(alias in location_lower for alias in aliases):
             return True
     return False
