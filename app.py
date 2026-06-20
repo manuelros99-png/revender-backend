@@ -86,11 +86,10 @@ def build_meli_url(params):
     elif anio_max:
         parts.append(str(anio_max))
 
-    # Slug: marca-modelo[-version]-usados
-    slug = f"{marca}-{modelo}"
-    if version:
-        slug += f"-{version}"
-    slug += "-usados"
+    # Slug: marca-modelo-usados
+    # La versión NO va en el slug — restringe resultados de MELI innecesariamente.
+    # El filtro de versión se aplica via sidebar (_SHORT*VERSION_) y el backend filtra por título.
+    slug = f"{marca}-{modelo}-usados"
 
     if antiguedad in _ANTIGUEDAD_SLUGS:
         slug += _ANTIGUEDAD_SLUGS[antiguedad]
