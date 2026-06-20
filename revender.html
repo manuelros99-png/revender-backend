@@ -549,6 +549,43 @@ tr:hover td { background: var(--hover-bg); }
   .grid-stats { grid-template-columns: 1fr; }
   .prov-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─── SCORE DOTS ─────────────────────────────────────────── */
+.score-bar { display: flex; align-items: center; gap: 6px; }
+.score-dots { display: flex; gap: 3px; }
+.score-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-bg-strong); flex-shrink: 0; }
+.score-dot.on { background: var(--profit); }
+.score-dot.on.warn { background: var(--warn); }
+.score-val { font-size: 11px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
+
+/* ─── SIDEBAR PANEL ──────────────────────────────────────── */
+.sidebar-panel {
+  margin: 14px 0 0; padding: 14px 0 0;
+  border-top: 1px solid var(--divider);
+}
+.sidebar-panel-title {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-3);
+  padding: 0 10px 6px;
+}
+.sidebar-recent-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-radius: 8px;
+  font-size: 11.5px; color: var(--text-2);
+  cursor: pointer; transition: background 0.15s;
+}
+.sidebar-recent-item:hover { background: var(--hover-bg); }
+.sidebar-recent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-recent-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.sidebar-recent-badge { font-size: 10px; color: var(--profit); font-weight: 600; }
+.sidebar-mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 10px 0; }
+.sidebar-mini-stat {
+  background: var(--glass-bg); border-radius: 8px;
+  padding: 8px 10px; border: 1px solid var(--glass-border-subtle);
+}
+.sidebar-mini-stat .val { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1; }
+.sidebar-mini-stat .lbl { font-size: 9px; color: var(--text-3); margin-top: 3px; }
+.sidebar-best-margin { padding: 8px 10px 0; font-size: 10px; color: var(--text-3); }
 </style>
 </head>
 <body>
@@ -603,6 +640,8 @@ tr:hover td { background: var(--hover-bg); }
         <span class="item-label">Importar datos</span>
       </button>
     </nav>
+
+    <div class="sidebar-panel" id="sidebar-panel"></div>
 
     <div class="sidebar-footer">
       <button type="button" class="icon-btn" id="btn-cmdk-side" title="Buscar (⌘K)">
@@ -713,14 +752,13 @@ tr:hover td { background: var(--hover-bg); }
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>Score</th>
                   <th>Vehículo</th>
                   <th>Año</th>
                   <th>Km</th>
                   <th>Precio USD Blue</th>
                   <th>Valor Mercado</th>
                   <th>% Reboleo</th>
-                  <th>Publicado</th>
                   <th>Ubicación</th>
                   <th></th>
                 </tr>
@@ -1253,7 +1291,6 @@ function renderHistorial(){
         <td><strong>${fmtMoney(r.precio, 'USD')}</strong></td>
         <td>${r.valorMercado ? fmtMoney(r.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
         <td>${pctLabel}</td>
-        <td>${publicadoLabel(r.diasPublicado)}</td>
         <td>${rankLabel}</td>
         <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
       </tr>`;
@@ -1269,7 +1306,7 @@ function renderHistorial(){
           <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
         </div>
       </div>
-      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Oportunidad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Oportunidad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
     </div>`;
   }).join('');
 }
@@ -1280,6 +1317,62 @@ function publicadoLabel(dias){
   if(dias <= 7) return `<span class="badge warn">${dias}d (semana)</span>`;
   if(dias <= 30) return `<span class="pill">${dias}d (mes)</span>`;
   return `<span class="sub">${dias}d</span>`;
+}
+
+function scoreDots(pct){
+  if(pct === null || pct === undefined) return '<span class="sub">—</span>';
+  const filled = pct >= 20 ? 5 : pct >= 15 ? 4 : pct >= 12 ? 3 : pct >= 8 ? 2 : pct >= 5 ? 1 : 0;
+  const isWarn = pct >= 5 && pct < 10;
+  const dots = Array.from({length:5}, (_,i)=>
+    `<span class="score-dot${i<filled?' on'+(isWarn?' warn':''):''}"></span>`
+  ).join('');
+  const valColor = pct >= 12 ? 'var(--profit)' : pct >= 5 ? 'var(--warn)' : 'var(--risk)';
+  return `<div class="score-bar"><div class="score-dots">${dots}</div><span class="score-val" style="color:${valColor}">${pct>0?'+':''}${pct}%</span></div>`;
+}
+
+function renderSidebarPanel(){
+  const panel = document.getElementById('sidebar-panel');
+  if(!panel) return;
+  const recientes = DB.historial.slice(0, 3);
+  const hoy = new Date().toDateString();
+  const busquedasHoy = DB.historial.filter(b=> new Date(b.fecha).toDateString()===hoy).length;
+  const opHoy = DB.historial
+    .filter(b=> new Date(b.fecha).toDateString()===hoy)
+    .reduce((acc,b)=> acc + b.resultados.filter(r=>r.esOportunidad).length, 0);
+  const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+  const maxDiff = diffs.length ? Math.max(...diffs) : null;
+
+  const statusColor = {
+    completada: 'var(--profit)', buscando: 'var(--warn)',
+    analizando: 'var(--warn)', error: 'var(--risk)', pendiente: 'var(--text-3)',
+  };
+  const recentHTML = recientes.length
+    ? recientes.map(b=>{
+        const nOp = b.resultados.filter(r=>r.esOportunidad).length;
+        const dotColor = statusColor[b.estado] || 'var(--text-3)';
+        return `<div class="sidebar-recent-item" onclick="showView('historial')">
+          <span class="sidebar-recent-dot" style="background:${dotColor}"></span>
+          <span class="sidebar-recent-name">${b.marca} ${b.modelo}</span>
+          ${nOp>0?`<span class="sidebar-recent-badge">${nOp}↑</span>`:''}
+        </div>`;
+      }).join('')
+    : `<div style="padding:5px 10px;font-size:11px;color:var(--text-3)">Sin búsquedas</div>`;
+
+  panel.innerHTML = `
+    <div class="sidebar-panel-title">Recientes</div>
+    ${recentHTML}
+    <div class="sidebar-mini-stats">
+      <div class="sidebar-mini-stat">
+        <div class="val">${busquedasHoy}</div>
+        <div class="lbl">Búsquedas hoy</div>
+      </div>
+      <div class="sidebar-mini-stat">
+        <div class="val" style="color:var(--profit)">${opHoy}</div>
+        <div class="lbl">Oport. hoy</div>
+      </div>
+    </div>
+    ${maxDiff!==null?`<div class="sidebar-best-margin">Mejor reboleo: <strong style="color:var(--profit)">+${maxDiff}%</strong></div>`:''}
+  `;
 }
 
 function confirmDeleteBusqueda(id){
@@ -1341,10 +1434,6 @@ function renderOportunidades(){
   if(!ops.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   tbody.innerHTML = ops.map(o=>{
-    const rank = o.score || '—';
-    const rankBadge = rank <= 3
-      ? `<span class="badge ok">#${rank}</span>`
-      : `<span class="pill">#${rank}</span>`;
     const pct = diffPct(o.precio, o.valorMercado);
     const pctBadge = pct === null ? '<span class="sub">—</span>'
       : pct >= 15 ? `<span class="badge ok">+${pct}% 🔥</span>`
@@ -1352,14 +1441,13 @@ function renderOportunidades(){
       : pct > 0  ? `<span class="badge warn">+${pct}%</span>`
       : `<span class="badge no">${pct}%</span>`;
     return `<tr>
-      <td>${rankBadge}</td>
+      <td>${scoreDots(pct)}</td>
       <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
       <td>${o.anio||'—'}</td>
       <td>${o.km?.toLocaleString('es-AR')||'—'}</td>
       <td><strong>${fmtMoney(o.precio,'USD')}</strong></td>
       <td>${o.valorMercado ? fmtMoney(o.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
       <td>${pctBadge}</td>
-      <td>${publicadoLabel(o.diasPublicado)}</td>
       <td>${o.ubicacion||'—'}</td>
       <td>${o.link?`<a class="link" href="${o.link}" target="_blank">Ver →</a>`:''}</td>
     </tr>`;
@@ -1495,6 +1583,7 @@ function renderAll(){
   renderHistorial();
   renderOportunidades();
   renderAlertas();
+  renderSidebarPanel();
 }
 renderAll();
 </script>
