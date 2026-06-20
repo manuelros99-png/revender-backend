@@ -6,862 +6,742 @@
 <title>Revender</title>
 <script>
   (function(){
-    var saved = localStorage.getItem('gonzalito_theme');
-    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
+    var s = localStorage.getItem('gonzalito_theme');
+    var t = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', t);
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ─── TOKENS ─────────────────────────────────────────────── */
+/* ─── TOKENS ────────────────────────────────────────────── */
 :root {
-  --primary: #6366f1;
-  --primary-end: #8b5cf6;
-  --profit: #34d399;
-  --info: #60a5fa;
-  --warn: #fbbf24;
-  --risk: #f87171;
+  --primary: #6366f1; --primary-end: #8b5cf6;
+  --profit: #34d399; --info: #60a5fa; --warn: #fbbf24; --risk: #f87171; --purple: #a78bfa;
 
   --bg: #0a0a0f;
-  --bg-grad:
-    radial-gradient(ellipse 80% 60% at 20% 10%, #1a1040 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, #0c1f3a 0%, transparent 60%),
-    linear-gradient(135deg, #0d0d1a 0%, #0f1729 40%, #12102b 70%, #0a1520 100%);
+  --bg-grad: radial-gradient(ellipse 80% 60% at 20% 10%,#1a1040 0%,transparent 60%),
+             radial-gradient(ellipse 60% 50% at 80% 80%,#0c1f3a 0%,transparent 60%),
+             linear-gradient(135deg,#0d0d1a 0%,#0f1729 40%,#12102b 70%,#0a1520 100%);
   --glass-bg: rgba(255,255,255,0.055);
   --glass-bg-strong: rgba(255,255,255,0.09);
   --glass-border: rgba(255,255,255,0.10);
   --glass-border-subtle: rgba(255,255,255,0.05);
-  --glass-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-  --frame-bg: rgba(8,10,20,0.88);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08);
+  --frame-bg: rgba(8,10,20,0.92);
   --sidebar-bg: rgba(255,255,255,0.015);
-  --text-1: rgba(255,255,255,0.95);
-  --text-2: rgba(255,255,255,0.65);
-  --text-3: rgba(255,255,255,0.38);
+  --panel-bg: rgba(0,0,0,0.15);
+  --titlebar-bg: rgba(0,0,0,0.25);
+  --text-1: rgba(255,255,255,0.95); --text-2: rgba(255,255,255,0.65); --text-3: rgba(255,255,255,0.38);
   --divider: rgba(255,255,255,0.06);
-  --hover-bg: rgba(255,255,255,0.05);
-  --active-bg: rgba(99,102,241,0.18);
-  --tag-bg: rgba(255,255,255,0.07);
-  --input-bg: rgba(0,0,0,0.25);
-  --badge-profit: rgba(52,211,153,0.15);
-  --badge-risk: rgba(248,113,113,0.15);
-  --badge-warn: rgba(251,191,36,0.12);
-  --badge-info: rgba(96,165,250,0.12);
+  --hover-bg: rgba(255,255,255,0.05); --active-bg: rgba(99,102,241,0.18);
+  --tag-bg: rgba(255,255,255,0.07); --input-bg: rgba(0,0,0,0.25);
+  --badge-profit: rgba(52,211,153,0.15); --badge-risk: rgba(248,113,113,0.15);
+  --badge-warn: rgba(251,191,36,0.12); --badge-info: rgba(96,165,250,0.12);
   --scrollbar: rgba(255,255,255,0.12);
-  --orb1: #3b28cc; --orb2: #0ea5e9; --orb3: #7c3aed; --orb4: #059669;
-
-  /* Aliases para compatibilidad con JS que usa inline style="color:var(--success)" etc */
-  --success: var(--profit);
-  --danger: var(--risk);
-  --warning: var(--warn);
-  --accent: var(--primary);
-  --muted: var(--text-2);
-  --text: var(--text-1);
-  --surface2: var(--glass-bg);
-  --border: var(--glass-border);
-  --accent-text: #fff;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --radius-pill: 999px;
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --orb1:#3b28cc; --orb2:#0ea5e9; --orb3:#7c3aed; --orb4:#059669;
+  /* aliases */
+  --success:var(--profit); --danger:var(--risk); --warning:var(--warn);
+  --accent:var(--primary); --muted:var(--text-2); --text:var(--text-1);
+  --surface2:var(--glass-bg); --border:var(--glass-border);
+  --font:'Inter',system-ui,-apple-system,sans-serif;
 }
-
 [data-theme="light"] {
-  --bg: #f0f0f8;
-  --bg-grad:
-    radial-gradient(ellipse 80% 60% at 20% 10%, #ddd8f8 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, #d0e4f8 0%, transparent 60%),
-    linear-gradient(135deg, #ebebf7 0%, #e8eef8 40%, #ece8f8 70%, #e4eff8 100%);
-  --glass-bg: rgba(255,255,255,0.62);
-  --glass-bg-strong: rgba(255,255,255,0.85);
-  --glass-border: rgba(0,0,0,0.08);
-  --glass-border-subtle: rgba(0,0,0,0.05);
-  --glass-shadow: 0 4px 24px rgba(80,60,160,0.10), inset 0 1px 0 rgba(255,255,255,0.9);
-  --frame-bg: rgba(240,240,248,0.92);
-  --sidebar-bg: rgba(255,255,255,0.45);
-  --text-1: rgba(12,10,30,0.92);
-  --text-2: rgba(12,10,30,0.58);
-  --text-3: rgba(12,10,30,0.35);
-  --divider: rgba(0,0,0,0.07);
-  --hover-bg: rgba(0,0,0,0.04);
-  --active-bg: rgba(99,102,241,0.10);
-  --tag-bg: rgba(0,0,0,0.06);
-  --input-bg: rgba(255,255,255,0.55);
-  --badge-profit: rgba(5,150,105,0.10);
-  --badge-risk: rgba(220,50,50,0.10);
-  --badge-warn: rgba(180,130,0,0.10);
-  --badge-info: rgba(30,100,200,0.10);
-  --scrollbar: rgba(0,0,0,0.12);
-  --orb1: #9490ee; --orb2: #60b8f0; --orb3: #b39df4; --orb4: #52c4a0;
-
-  --success: #059669;
-  --danger: #dc2626;
-  --warning: #b45309;
-  --profit: #059669;
-  --risk: #dc2626;
-  --warn: #b45309;
-  --info: #1e64c8;
-  --accent: var(--primary);
-  --muted: var(--text-2);
-  --text: var(--text-1);
-  --surface2: var(--glass-bg);
-  --border: var(--glass-border);
+  --bg:#f0f0f8;
+  --bg-grad: radial-gradient(ellipse 80% 60% at 20% 10%,#ddd8f8 0%,transparent 60%),
+             radial-gradient(ellipse 60% 50% at 80% 80%,#d0e4f8 0%,transparent 60%),
+             linear-gradient(135deg,#ebebf7 0%,#e8eef8 40%,#ece8f8 70%,#e4eff8 100%);
+  --glass-bg:rgba(255,255,255,0.62); --glass-bg-strong:rgba(255,255,255,0.85);
+  --glass-border:rgba(0,0,0,0.08); --glass-border-subtle:rgba(0,0,0,0.05);
+  --glass-shadow:0 4px 24px rgba(80,60,160,0.10),inset 0 1px 0 rgba(255,255,255,0.9);
+  --frame-bg:rgba(240,240,248,0.95); --sidebar-bg:rgba(255,255,255,0.45);
+  --panel-bg:rgba(255,255,255,0.38); --titlebar-bg:rgba(255,255,255,0.35);
+  --text-1:rgba(12,10,30,0.92); --text-2:rgba(12,10,30,0.58); --text-3:rgba(12,10,30,0.35);
+  --divider:rgba(0,0,0,0.07); --hover-bg:rgba(0,0,0,0.04); --active-bg:rgba(99,102,241,0.10);
+  --tag-bg:rgba(0,0,0,0.06); --input-bg:rgba(255,255,255,0.55);
+  --badge-profit:rgba(5,150,105,0.10); --badge-risk:rgba(220,50,50,0.10);
+  --badge-warn:rgba(180,130,0,0.10); --badge-info:rgba(30,100,200,0.10);
+  --scrollbar:rgba(0,0,0,0.12);
+  --orb1:#9490ee; --orb2:#60b8f0; --orb3:#b39df4; --orb4:#52c4a0;
+  --success:#059669; --danger:#dc2626; --warning:#b45309;
+  --profit:#059669; --risk:#dc2626; --warn:#b45309; --info:#1e64c8;
 }
 
 /* ─── RESET ─────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text-1);
-  min-height: 100vh;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: none;
-}
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
-*:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:4px;}
+*:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px;}
 
 /* ─── BACKGROUND ORBS ───────────────────────────────────── */
-.page-bg {
-  position: fixed; inset: 0; z-index: 0;
-  background: var(--bg-grad);
-  overflow: hidden;
-  pointer-events: none;
-}
-.orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(80px); opacity: 0.35;
-  animation: float-orb 18s ease-in-out infinite;
-}
-[data-theme="light"] .orb { opacity: 0.20; }
-.orb-1 { width:600px;height:600px;background:var(--orb1);top:-200px;left:-100px;animation-delay:0s; }
-.orb-2 { width:500px;height:500px;background:var(--orb2);bottom:-150px;right:-100px;animation-delay:-6s; }
-.orb-3 { width:400px;height:400px;background:var(--orb3);top:40%;left:50%;animation-name:float-orb-center;animation-delay:-3s; }
-.orb-4 { width:300px;height:300px;background:var(--orb4);bottom:10%;left:20%;animation-delay:-9s; }
-@keyframes float-orb {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33%      { transform: translate(30px,-40px) scale(1.05); }
-  66%      { transform: translate(-20px,30px) scale(0.95); }
-}
-@keyframes float-orb-center {
-  0%,100% { transform: translate(-50%,-50%) scale(1); }
-  33%      { transform: translate(calc(-50% + 30px),calc(-50% - 40px)) scale(1.05); }
-  66%      { transform: translate(calc(-50% - 20px),calc(-50% + 30px)) scale(0.95); }
-}
+.page-bg{position:fixed;inset:0;z-index:0;background:var(--bg-grad);overflow:hidden;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.35;animation:float-orb 18s ease-in-out infinite;}
+[data-theme="light"] .orb{opacity:0.20;}
+.orb-1{width:600px;height:600px;background:var(--orb1);top:-200px;left:-100px;animation-delay:0s;}
+.orb-2{width:500px;height:500px;background:var(--orb2);bottom:-150px;right:-100px;animation-delay:-6s;}
+.orb-3{width:400px;height:400px;background:var(--orb3);top:40%;left:50%;animation-name:float-orb-c;animation-delay:-3s;}
+.orb-4{width:300px;height:300px;background:var(--orb4);bottom:10%;left:20%;animation-delay:-9s;}
+@keyframes float-orb{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-40px) scale(1.05);}66%{transform:translate(-20px,30px) scale(0.95);}}
+@keyframes float-orb-c{0%,100%{transform:translate(-50%,-50%) scale(1);}33%{transform:translate(calc(-50% + 30px),calc(-50% - 40px)) scale(1.05);}66%{transform:translate(calc(-50% - 20px),calc(-50% + 30px)) scale(0.95);}}
 
 /* ─── GLASS ──────────────────────────────────────────────── */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
+.glass{background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);}
 
-/* ─── THEME TOGGLE (fixed) ───────────────────────────────── */
-.theme-toggle {
-  position: fixed; top: 16px; right: 16px; z-index: 100;
-  width: 38px; height: 38px; border-radius: 10px;
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  color: var(--text-2); transition: all 0.2s;
-}
-.theme-toggle:hover { color: var(--text-1); }
+/* ─── APP FRAME ──────────────────────────────────────────── */
+.app-outer{position:relative;z-index:1;width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.app-frame{background:var(--frame-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 
-/* ─── SHELL / LAYOUT ─────────────────────────────────────── */
-.shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+/* ─── TITLEBAR ───────────────────────────────────────────── */
+.app-titlebar{
+  height:48px;flex-shrink:0;
+  background:var(--titlebar-bg);
+  border-bottom:1px solid var(--divider);
+  display:flex;align-items:center;padding:0 14px;gap:10px;
+}
+.traffic-lights{display:flex;gap:6px;flex-shrink:0;}
+.tl{width:12px;height:12px;border-radius:50%;}
+.tl-red{background:#ff5f57;} .tl-amber{background:#febc2e;} .tl-green{background:#28c840;}
+.titlebar-sep{width:1px;height:20px;background:var(--divider);flex-shrink:0;margin:0 4px;}
+.titlebar-title{font-size:13px;font-weight:600;color:var(--text-2);flex:1;text-align:center;}
+
+/* ─── APP BODY ───────────────────────────────────────────── */
+.app-body{display:flex;flex:1;min-height:0;overflow:hidden;position:relative;}
+.sidebar-overlay{display:none;position:absolute;inset:0;z-index:50;background:rgba(0,0,0,0.5);}
 
 /* ─── SIDEBAR ────────────────────────────────────────────── */
-.sidebar {
-  width: 224px; flex-shrink: 0;
-  background: var(--sidebar-bg);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border-right: 1px solid var(--divider);
-  padding: 20px 14px;
-  display: flex; flex-direction: column; gap: 2px;
-  position: sticky; top: 0; height: 100vh;
-  overflow-y: auto; overflow-x: hidden;
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--divider);
+  padding:20px 14px;
+  display:flex;flex-direction:column;gap:2px;
+  overflow-y:auto;overflow-x:hidden;
+  transition:width 0.25s ease,padding 0.25s ease,opacity 0.2s ease,border-color 0.25s ease;
 }
+.sidebar.collapsed{width:0;padding-left:0;padding-right:0;opacity:0;pointer-events:none;border-color:transparent;}
 
-.sidebar-logo {
-  padding: 4px 8px 16px;
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: 8px;
+.sidebar-logo{padding:4px 8px 16px;border-bottom:1px solid var(--divider);margin-bottom:8px;white-space:nowrap;overflow:hidden;}
+.sidebar-logo-name{
+  font-size:17px;font-weight:800;letter-spacing:-0.02em;
+  background:linear-gradient(135deg,var(--text-1),rgba(255,255,255,0.65));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:block;
 }
-.sidebar-logo-name {
-  font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--text-1), rgba(255,255,255,0.65));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  display: block;
-}
-[data-theme="light"] .sidebar-logo-name {
-  background: linear-gradient(135deg, #2d1b8e, #6d28d9);
-  -webkit-background-clip: text; background-clip: text;
-}
-.sidebar-logo-tag {
-  font-size: 9px; color: var(--text-3);
-  letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px;
-}
+[data-theme="light"] .sidebar-logo-name{background:linear-gradient(135deg,#2d1b8e,#6d28d9);-webkit-background-clip:text;background-clip:text;}
+.sidebar-logo-tag{font-size:9px;color:var(--text-3);letter-spacing:0.18em;text-transform:uppercase;margin-top:2px;}
 
-.nav-section-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--text-3);
-  padding: 12px 10px 4px;
+.nav-section-label{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);padding:12px 10px 4px;white-space:nowrap;}
+
+.item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:9px;
+  font-size:13px;font-weight:500;color:var(--text-2);
+  cursor:pointer;transition:background 0.15s,color 0.15s;
+  background:none;border:none;font-family:var(--font);
+  text-align:left;width:100%;-webkit-tap-highlight-color:transparent;
+  white-space:nowrap;overflow:hidden;
 }
+.item:hover{background:var(--hover-bg);color:var(--text-1);}
+.item:active{transform:scale(0.98);}
+.item.active{background:var(--active-bg);color:var(--primary);font-weight:600;}
+.item svg{width:16px;height:16px;flex-shrink:0;}
+.item-label{flex:1;}
+.nav-count{margin-left:auto;background:var(--tag-bg);color:var(--text-2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;min-width:18px;text-align:center;}
+.item.active .nav-count{background:rgba(99,102,241,0.25);color:var(--primary);}
 
-/* .item is used by JS (querySelectorAll('.item[data-view]')) — styled as nav-item */
-.item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: 9px;
-  font-size: 13px; font-weight: 500; color: var(--text-2);
-  cursor: pointer; transition: background 0.15s, color 0.15s;
-  background: none; border: none; font-family: var(--font);
-  text-align: left; width: 100%; -webkit-tap-highlight-color: transparent;
+.sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--divider);display:flex;flex-direction:column;gap:4px;}
+
+/* Theme toggle inside sidebar */
+.theme-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;transition:background 0.15s,color 0.15s;background:none;border:none;font-family:var(--font);text-align:left;width:100%;}
+.theme-item:hover{background:var(--hover-bg);color:var(--text-1);}
+.theme-item svg{width:16px;height:16px;flex-shrink:0;}
+[data-theme="dark"] .icon-sun{display:none;}
+[data-theme="light"] .icon-moon{display:none;}
+
+/* ─── MAIN CONTENT ───────────────────────────────────────── */
+.main-content{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
+
+.main-topbar{
+  height:52px;flex-shrink:0;
+  border-bottom:1px solid var(--divider);
+  display:flex;align-items:center;padding:0 16px;gap:10px;
 }
-.item:hover { background: var(--hover-bg); color: var(--text-1); }
-.item:active { transform: scale(0.98); }
-.item.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
-.item svg { width: 16px; height: 16px; flex-shrink: 0; }
-.item-label { flex: 1; }
-
-/* Count badges inside nav items */
-.count, .nav-count {
-  margin-left: auto;
-  background: var(--tag-bg); color: var(--text-2);
-  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px;
-  min-width: 18px; text-align: center;
+.topbar-search{flex:1;min-width:0;max-width:340px;position:relative;}
+.topbar-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);pointer-events:none;width:14px;height:14px;}
+.topbar-search input{
+  width:100%;padding:7px 12px 7px 34px;
+  background:var(--input-bg);border:1px solid var(--glass-border);
+  border-radius:9px;font-family:var(--font);font-size:13px;color:var(--text-1);outline:none;
+  transition:border-color 0.18s;
 }
-.item.active .count, .item.active .nav-count {
-  background: rgba(99,102,241,0.25); color: var(--primary);
+.topbar-search input::placeholder{color:var(--text-3);}
+.topbar-search input:focus{border-color:var(--primary);}
+.topbar-actions{display:flex;gap:8px;align-items:center;margin-left:auto;}
+
+.main-scroll{flex:1;overflow-y:auto;padding:20px 20px;display:flex;flex-direction:column;gap:16px;}
+
+/* ─── RIGHT PANEL ────────────────────────────────────────── */
+.right-panel{
+  width:260px;flex-shrink:0;
+  border-left:1px solid var(--divider);
+  background:var(--panel-bg);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  transition:width 0.25s ease,opacity 0.2s ease,border-color 0.25s ease;
 }
-
-.sidebar-footer {
-  margin-top: auto; padding-top: 12px;
-  border-top: 1px solid var(--divider);
-  display: flex; gap: 6px;
-}
-
-/* ─── ICON BUTTON ────────────────────────────────────────── */
-.icon-btn {
-  width: 34px; height: 34px; padding: 0; border-radius: 9px;
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  color: var(--text-2); cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-  transition: all 0.18s;
-}
-.icon-btn svg { width: 16px; height: 16px; }
-.icon-btn:hover { background: var(--glass-bg-strong); color: var(--text-1); }
-.icon-btn:active { transform: scale(0.94); }
-
-/* ─── MAIN COLUMN ────────────────────────────────────────── */
-.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-/* Mobile top header */
-.topheader {
-  display: none;
-  position: sticky; top: 10px; z-index: 30;
-  margin: 10px 12px 0; padding: 12px 16px;
-  align-items: center; justify-content: space-between;
-  border-radius: 16px;
-}
-.brand-mobile {
-  font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-1);
-}
-.topheader-actions { display: flex; gap: 6px; }
-
-main { flex: 1; padding: 32px 36px; max-width: 1080px; width: 100%; }
-
-h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); }
-.sub { color: var(--text-2); font-size: 13.5px; margin-bottom: 24px; line-height: 1.6; }
-
-/* ─── CARDS ──────────────────────────────────────────────── */
-.card {
-  border-radius: 16px; padding: 22px; margin-bottom: 16px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-/* ─── FORMS ──────────────────────────────────────────────── */
-.form-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
-.form-grid.alerts { grid-template-columns: repeat(5,1fr); }
-
-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-3); margin-bottom: 6px; letter-spacing: 0.02em; }
-
-input, select, textarea {
-  width: 100%; padding: 10px 14px; border-radius: 10px;
-  background: var(--input-bg); border: 1px solid var(--glass-border);
-  color: var(--text-1); font-family: var(--font); font-size: 13.5px; outline: none;
-  transition: border-color 0.18s, box-shadow 0.18s;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  min-height: 42px;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-}
-input::placeholder, textarea::placeholder { color: var(--text-3); }
-select option { background: var(--frame-bg); color: var(--text-1); }
-textarea { height: 160px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; resize: vertical; }
-
-/* Province chips */
-.prov-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 8px; }
-.prov-chip {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--tag-bg); border: 1px solid var(--glass-border-subtle);
-  border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-  color: var(--text-2);
-}
-.prov-chip input { width: auto; margin: 0; min-height: auto; padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none; }
-.prov-chip.checked { border-color: var(--primary); color: var(--primary); background: var(--active-bg); }
+.right-panel.collapsed{width:0;opacity:0;pointer-events:none;border-color:transparent;}
+.panel-section{padding:16px;border-bottom:1px solid var(--divider);flex-shrink:0;}
+.panel-section-title{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;white-space:nowrap;}
+.alert-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;}
+.alert-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.alert-text{font-size:12px;color:var(--text-2);line-height:1.4;}
+.alert-time{font-size:10px;color:var(--text-3);margin-top:2px;}
+.mini-stat{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;}
+.mini-stat-label{color:var(--text-3);}
+.mini-stat-val{font-weight:600;color:var(--text-1);}
+.chart-bar-row{display:flex;flex-direction:column;gap:9px;}
+.chart-bar-item{display:flex;flex-direction:column;gap:4px;}
+.chart-bar-label{font-size:11px;color:var(--text-2);display:flex;justify-content:space-between;}
+.chart-bar-track{height:5px;background:var(--glass-bg-strong);border-radius:3px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--primary-end));}
+.chart-bar-fill.green{background:var(--profit);}
+.chart-bar-fill.amber{background:var(--warn);}
 
 /* ─── BUTTONS ────────────────────────────────────────────── */
-button {
-  cursor: pointer; font-family: var(--font); border: none;
-  border-radius: 10px; padding: 10px 20px;
-  font-size: 13.5px; font-weight: 600; min-height: 42px;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.18s;
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 20px;border-radius:10px;border:none;
+  font-family:var(--font);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all 0.18s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;min-height:40px;
 }
-button:active { transform: scale(0.97); }
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-end));
-  color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.4);
-}
-.btn-primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.55); transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0) scale(0.97); }
-
-.btn-secondary {
-  background: var(--glass-bg); color: var(--text-1);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-}
-.btn-secondary:hover { background: var(--glass-bg-strong); }
-
-.btn-ghost {
-  background: transparent; color: var(--text-2);
-  border: 1px solid var(--glass-border-subtle);
-}
-.btn-ghost:hover { background: var(--hover-bg); color: var(--text-1); }
-
-.btn-danger {
-  background: var(--badge-risk); border: 1px solid var(--risk); color: var(--risk);
-}
-.btn-danger:hover { background: rgba(248,113,113,0.25); }
-
-.small-btn { padding: 6px 14px !important; font-size: 12px !important; min-height: 32px !important; border-radius: 8px !important; }
-.btn-row { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-end));color:#fff;box-shadow:0 4px 14px rgba(99,102,241,0.4);}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(99,102,241,0.55);transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0) scale(0.97);}
+.btn-glass{background:var(--glass-bg);color:var(--text-1);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.btn-glass:hover{background:var(--glass-bg-strong);}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--glass-border-subtle);}
+.btn-ghost:hover{background:var(--hover-bg);color:var(--text-1);}
+.btn-danger{background:var(--badge-risk);border:1px solid var(--risk);color:var(--risk);}
+.btn-danger:hover{background:rgba(248,113,113,0.25);}
+.btn-sm{padding:6px 14px;font-size:12px;min-height:30px;border-radius:8px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px;}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:9px;background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.18s;}
+.btn-icon svg{width:15px;height:15px;}
+.btn-icon:hover{background:var(--glass-bg-strong);color:var(--text-1);}
+.btn-icon:active{transform:scale(0.94);}
 
 /* ─── BADGES ─────────────────────────────────────────────── */
-.badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600; white-space: nowrap;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
-.badge.ok,   .badge-profit { background: var(--badge-profit); color: var(--profit); }
-.badge.no,   .badge-risk   { background: var(--badge-risk);   color: var(--risk); }
-.badge.warn, .badge-warn   { background: var(--badge-warn);   color: var(--warn); }
-.badge-info                { background: var(--badge-info);   color: var(--info); }
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;}
+.badge-profit{background:var(--badge-profit);color:var(--profit);}
+.badge-risk  {background:var(--badge-risk);  color:var(--risk);}
+.badge-warn  {background:var(--badge-warn);  color:var(--warn);}
+.badge-info  {background:var(--badge-info);  color:var(--info);}
+.badge-purple{background:rgba(167,139,250,0.12);color:var(--purple);}
+/* legacy aliases used in JS */
+.badge.ok  {background:var(--badge-profit);color:var(--profit);}
+.badge.no  {background:var(--badge-risk);  color:var(--risk);}
+.badge.warn{background:var(--badge-warn);  color:var(--warn);}
 
 /* ─── PILL / TAG ─────────────────────────────────────────── */
-.pill {
-  display: inline-flex; align-items: center;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 500;
-  background: var(--tag-bg); border: 1px solid var(--glass-border-subtle);
-  color: var(--text-2); white-space: nowrap;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
+.pill,.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--tag-bg);border:1px solid var(--glass-border-subtle);color:var(--text-2);white-space:nowrap;}
 
-/* ─── LINKS ──────────────────────────────────────────────── */
-a.link { color: var(--primary); text-decoration: none; font-size: 12.5px; font-weight: 500; }
-a.link:hover { text-decoration: underline; }
+/* ─── CARD ───────────────────────────────────────────────── */
+.card{border-radius:14px;padding:20px;background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);}
+
+/* ─── STATS ROW ──────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.stat-card{padding:16px;border-radius:12px;}
+.stat-label{font-size:11px;color:var(--text-3);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stat-value{font-size:22px;font-weight:700;color:var(--text-1);line-height:1;}
+.stat-delta{font-size:12px;margin-top:4px;}
+.stat-delta.up{color:var(--profit);}
+.stat-delta.down{color:var(--risk);}
+
+/* ─── OPP CARD ───────────────────────────────────────────── */
+.opp-card{border-radius:12px;padding:14px;background:var(--glass-bg);border:1px solid var(--glass-border);display:flex;flex-direction:column;gap:10px;}
+.opp-title{font-size:13px;font-weight:600;color:var(--text-1);}
+.opp-meta{font-size:11px;color:var(--text-2);display:flex;gap:12px;flex-wrap:wrap;}
+.opp-prices{display:flex;justify-content:space-between;align-items:flex-end;}
+.opp-price-col{display:flex;flex-direction:column;gap:2px;}
+.opp-price-label{font-size:10px;color:var(--text-3);}
+.opp-price-val{font-size:17px;font-weight:700;color:var(--text-1);}
+.opp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+
+/* ─── FORM ───────────────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.form-grid.cols3{grid-template-columns:repeat(3,1fr);}
+.form-grid.cols5{grid-template-columns:repeat(5,1fr);}
+label{display:block;font-size:11px;font-weight:500;color:var(--text-3);margin-bottom:5px;letter-spacing:0.02em;}
+input,select,textarea{width:100%;padding:9px 13px;border-radius:9px;background:var(--input-bg);border:1px solid var(--glass-border);color:var(--text-1);font-family:var(--font);font-size:13px;outline:none;transition:border-color 0.18s,box-shadow 0.18s;min-height:40px;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
+input::placeholder,textarea::placeholder{color:var(--text-3);}
+select option{background:var(--frame-bg);color:var(--text-1);}
+textarea{height:150px;font-family:'SF Mono',Menlo,monospace;font-size:12px;resize:vertical;}
+
+/* Province chips */
+.prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px;}
+.prov-chip{display:flex;align-items:center;gap:7px;background:var(--tag-bg);border:1px solid var(--glass-border-subtle);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;transition:all 0.15s;color:var(--text-2);}
+.prov-chip input{width:auto;margin:0;min-height:auto;padding:0;background:none;border:none;box-shadow:none;}
+.prov-chip.checked{border-color:var(--primary);color:var(--primary);background:var(--active-bg);}
 
 /* ─── TABLE ──────────────────────────────────────────────── */
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -22px; padding: 0 22px; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 680px; }
-th {
-  text-align: left; font-size: 10px; font-weight: 600;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  color: var(--text-3); border-bottom: 1px solid var(--divider);
-  padding: 9px 14px; white-space: nowrap;
-}
-td { padding: 11px 14px; border-bottom: 1px solid var(--divider); color: var(--text-2); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--hover-bg); }
-
-/* ─── STATS GRID ─────────────────────────────────────────── */
-.grid-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px; margin-bottom: 20px;
-}
-.stat { border-radius: 12px; padding: 16px; }
-.stat .v { font-size: 22px; font-weight: 700; color: var(--text-1); line-height: 1; }
-.stat .l { color: var(--text-3); font-size: 11px; margin-top: 6px; }
-
-/* ─── TOOLBAR ────────────────────────────────────────────── */
-.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
-.toolbar input[type=text] { max-width: 260px; }
-.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* ─── EMPTY ──────────────────────────────────────────────── */
-.empty { text-align: center; padding: 56px 20px; color: var(--text-3); }
-.empty .big { font-size: 32px; margin-bottom: 12px; opacity: 0.7; }
-
-/* ─── MODAL ──────────────────────────────────────────────── */
-.modal-bg {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-  display: none; align-items: center; justify-content: center;
-  z-index: 80; padding: 16px;
-}
-.modal-bg.open { display: flex; }
-.modal {
-  border-radius: 16px; padding: 24px; width: 400px; max-width: 100%;
-  background: var(--frame-bg);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-.modal h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--text-1); }
-
-/* ─── TOASTS ─────────────────────────────────────────────── */
-.toast-container {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  z-index: 90; display: flex; flex-direction: column; gap: 8px;
-  align-items: center; pointer-events: none; width: 100%;
-}
-.toast {
-  pointer-events: auto;
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
-  border-radius: 20px; padding: 11px 18px;
-  font-size: 13px; font-weight: 500; color: var(--text-1);
-  display: flex; align-items: center; gap: 8px;
-  opacity: 0; transform: translateY(8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  max-width: 90vw;
-}
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast::before { content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.toast-success::before { background: var(--profit); }
-.toast-error::before   { background: var(--risk); }
-.toast-info::before    { background: var(--primary); }
-
-/* ─── COMMAND PALETTE ────────────────────────────────────── */
-.cmdk-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-  display: none; align-items: flex-start; justify-content: center;
-  z-index: 85; padding: 14vh 16px 16px;
-}
-.cmdk-overlay.open { display: flex; }
-.cmdk-box {
-  border-radius: 16px; width: 520px; max-width: 100%; overflow: hidden;
-  background: var(--frame-bg);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.5);
-}
-.cmdk-input-wrap {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px; border-bottom: 1px solid var(--divider);
-}
-.cmdk-input-wrap svg { width: 18px; height: 18px; color: var(--text-3); flex-shrink: 0; }
-.cmdk-input-wrap input {
-  border: none; background: none; padding: 0; font-size: 15px;
-  min-height: auto; backdrop-filter: none; color: var(--text-1);
-}
-.cmdk-input-wrap input:focus { box-shadow: none; border: none; }
-.cmdk-list { max-height: 320px; overflow-y: auto; padding: 8px; }
-.cmdk-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 10px; cursor: pointer;
-  font-size: 13.5px; color: var(--text-2);
-}
-.cmdk-item svg { width: 16px; height: 16px; color: var(--text-3); }
-.cmdk-item:hover, .cmdk-item.hl { background: var(--hover-bg); color: var(--text-1); }
-.cmdk-empty { padding: 24px; text-align: center; color: var(--text-3); font-size: 13px; }
-
-/* ─── TABBAR MOBILE ──────────────────────────────────────── */
-.tabbar { display: none; }
-
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
-@media (max-width: 980px) {
-  .form-grid, .form-grid.alerts { grid-template-columns: repeat(2,1fr); }
-  .prov-grid { grid-template-columns: repeat(3,1fr); }
-}
-
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .topheader { display: flex; }
-  .shell { flex-direction: column; }
-  main { padding: 14px 14px 96px; max-width: 100%; }
-  h2 { font-size: 18px; }
-  .card { padding: 16px; border-radius: 14px; }
-  .form-grid, .form-grid.alerts { grid-template-columns: 1fr; }
-  .grid-stats { grid-template-columns: repeat(2,1fr); gap: 10px; }
-  .prov-grid { grid-template-columns: repeat(2,1fr); }
-  .toolbar { flex-direction: column; align-items: stretch; }
-  .toolbar input[type=text], .toolbar select { max-width: 100%; }
-  .btn-row { flex-direction: column; align-items: stretch; }
-  .btn-row button { width: 100%; justify-content: center; }
-  .table-scroll { margin: 0 -16px; padding: 0 16px; }
-  .theme-toggle { display: none; }
-
-  .tabbar {
-    display: flex;
-    position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 50;
-    border-radius: 18px;
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
-    justify-content: space-around;
-  }
-  .tabbar .item {
-    flex-direction: column; gap: 3px; font-size: 10px;
-    padding: 6px 4px; border-radius: 12px; flex: 1; align-items: center;
-    width: auto;
-  }
-  .tabbar .item svg { width: 20px; height: 20px; }
-  .tabbar .item .count, .tabbar .item .nav-count { display: none; }
-  .tabbar .item.active { box-shadow: none; }
-
-  .modal-bg { align-items: flex-end; padding: 0; }
-  .modal { width: 100%; border-radius: 20px 20px 0 0; }
-  .cmdk-overlay { padding: 0; align-items: flex-end; }
-  .cmdk-box { border-radius: 20px 20px 0 0; width: 100%; }
-}
-
-@media (max-width: 480px) {
-  .grid-stats { grid-template-columns: 1fr; }
-  .prov-grid { grid-template-columns: 1fr 1fr; }
-}
+.table-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--glass-border);background:var(--glass-bg);}
+.table-toolbar{padding:12px 16px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.table-title{font-size:14px;font-weight:600;color:var(--text-1);}
+.table-count{font-size:12px;color:var(--text-3);}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:620px;}
+th{text-align:left;font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:var(--text-3);border-bottom:1px solid var(--divider);padding:9px 14px;white-space:nowrap;}
+td{padding:10px 14px;border-bottom:1px solid var(--divider);color:var(--text-2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--hover-bg);}
 
 /* ─── SCORE DOTS ─────────────────────────────────────────── */
-.score-bar { display: flex; align-items: center; gap: 6px; }
-.score-dots { display: flex; gap: 3px; }
-.score-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-bg-strong); flex-shrink: 0; }
-.score-dot.on { background: var(--profit); }
-.score-dot.on.warn { background: var(--warn); }
-.score-val { font-size: 11px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
+.score-bar{display:flex;align-items:center;gap:5px;}
+.score-dots{display:flex;gap:2px;}
+.score-dot{width:7px;height:7px;border-radius:50%;background:var(--glass-bg-strong);}
+.score-dot.on{background:var(--profit);}
+.score-dot.on.amber{background:var(--warn);}
+.score-val{font-size:11px;font-weight:600;white-space:nowrap;}
 
-/* ─── SIDEBAR PANEL ──────────────────────────────────────── */
-.sidebar-panel {
-  margin: 14px 0 0; padding: 14px 0 0;
-  border-top: 1px solid var(--divider);
+/* ─── PROGRESS ───────────────────────────────────────────── */
+.progress-bar{height:5px;border-radius:3px;background:var(--glass-bg-strong);overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--primary-end));}
+.progress-fill.green{background:var(--profit);}
+.progress-fill.amber{background:var(--warn);}
+
+/* ─── SECTION HEADING ────────────────────────────────────── */
+.view-header{margin-bottom:16px;}
+.view-header h2{font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--text-1);margin-bottom:3px;}
+.view-header .sub{color:var(--text-2);font-size:13px;line-height:1.5;}
+
+/* ─── TOOLBAR (generic) ──────────────────────────────────── */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+.toolbar input[type=text]{max-width:240px;}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ─── LINKS ──────────────────────────────────────────────── */
+a.link{color:var(--primary);text-decoration:none;font-size:12px;font-weight:500;}
+a.link:hover{text-decoration:underline;}
+
+/* ─── EMPTY ──────────────────────────────────────────────── */
+.empty{text-align:center;padding:48px 20px;color:var(--text-3);}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:0.7;}
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:80;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{border-radius:16px;padding:24px;width:380px;max-width:100%;background:var(--frame-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);}
+.modal h3{margin:0 0 8px;font-size:15px;font-weight:700;color:var(--text-1);}
+
+/* ─── TOASTS ─────────────────────────────────────────────── */
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:100%;}
+.toast{pointer-events:auto;background:var(--glass-bg-strong);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);border-radius:20px;padding:10px 18px;font-size:13px;font-weight:500;color:var(--text-1);display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:opacity 0.2s,transform 0.2s;max-width:90vw;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.toast-success::before{background:var(--profit);}
+.toast-error::before{background:var(--risk);}
+.toast-info::before{background:var(--primary);}
+
+/* ─── COMMAND PALETTE ────────────────────────────────────── */
+.cmdk-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;z-index:85;padding:14vh 16px 16px;}
+.cmdk-overlay.open{display:flex;}
+.cmdk-box{border-radius:16px;width:500px;max-width:100%;overflow:hidden;background:var(--frame-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--glass-border);box-shadow:0 32px 80px rgba(0,0,0,0.5);}
+.cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--divider);}
+.cmdk-input-wrap svg{width:17px;height:17px;color:var(--text-3);flex-shrink:0;}
+.cmdk-input-wrap input{border:none;background:none;padding:0;font-size:15px;min-height:auto;color:var(--text-1);}
+.cmdk-input-wrap input:focus{box-shadow:none;border:none;}
+.cmdk-list{max-height:300px;overflow-y:auto;padding:8px;}
+.cmdk-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text-2);}
+.cmdk-item:hover,.cmdk-item.hl{background:var(--hover-bg);color:var(--text-1);}
+.cmdk-empty{padding:24px;text-align:center;color:var(--text-3);font-size:13px;}
+
+/* ─── MOBILE TABBAR ──────────────────────────────────────── */
+.tabbar{display:none;}
+
+/* ─── EXTENSION HINT ─────────────────────────────────────── */
+.ext-hint{font-size:12px;color:var(--warn);margin-top:8px;display:none;}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:980px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .right-panel{display:none;}
+  .form-grid{grid-template-columns:repeat(2,1fr);}
+  .prov-grid{grid-template-columns:repeat(3,1fr);}
 }
-.sidebar-panel-title {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--text-3);
-  padding: 0 10px 6px;
+@media(max-width:768px){
+  body{overflow:auto;}
+  .app-outer{height:auto;min-height:100vh;}
+  .app-body{flex-direction:column;}
+  .main-content{overflow:visible;}
+  .main-scroll{overflow:visible;padding:14px 14px 96px;}
+  .sidebar{display:none;}
+  .sidebar.mobile-open{display:flex;position:fixed;top:0;left:0;height:100%;z-index:51;width:220px;}
+  .sidebar-overlay.active{display:block;}
+  .tabbar{
+    display:flex;position:fixed;bottom:10px;left:10px;right:10px;z-index:50;
+    border-radius:18px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    justify-content:space-around;
+    background:var(--glass-bg-strong);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);
+  }
+  .tabbar .item{flex-direction:column;gap:3px;font-size:10px;padding:6px 4px;border-radius:12px;flex:1;align-items:center;width:auto;}
+  .tabbar .item svg{width:20px;height:20px;}
+  .tabbar .item .nav-count{display:none;}
+  .form-grid,.form-grid.cols3,.form-grid.cols5{grid-template-columns:1fr;}
+  .prov-grid{grid-template-columns:repeat(2,1fr);}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .opp-grid{grid-template-columns:1fr;}
+  .main-topbar{padding:0 12px;}
+  .topbar-search{max-width:none;flex:1;}
+  .app-titlebar{padding:0 12px;}
+  .modal-bg{align-items:flex-end;padding:0;}
+  .modal{width:100%;border-radius:20px 20px 0 0;}
+  .cmdk-overlay{padding:0;align-items:flex-end;}
+  .cmdk-box{border-radius:20px 20px 0 0;width:100%;}
 }
-.sidebar-recent-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 10px; border-radius: 8px;
-  font-size: 11.5px; color: var(--text-2);
-  cursor: pointer; transition: background 0.15s;
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .prov-grid{grid-template-columns:1fr 1fr;}
 }
-.sidebar-recent-item:hover { background: var(--hover-bg); }
-.sidebar-recent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.sidebar-recent-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
-.sidebar-recent-badge { font-size: 10px; color: var(--profit); font-weight: 600; }
-.sidebar-mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 10px 0; }
-.sidebar-mini-stat {
-  background: var(--glass-bg); border-radius: 8px;
-  padding: 8px 10px; border: 1px solid var(--glass-border-subtle);
-}
-.sidebar-mini-stat .val { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1; }
-.sidebar-mini-stat .lbl { font-size: 9px; color: var(--text-3); margin-top: 3px; }
-.sidebar-best-margin { padding: 8px 10px 0; font-size: 10px; color: var(--text-3); }
 </style>
 </head>
 <body>
 
-<!-- Animated background -->
 <div class="page-bg">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="orb orb-3"></div><div class="orb orb-4"></div>
 </div>
 
-<!-- Fixed theme toggle (desktop) -->
-<button class="theme-toggle" id="btn-theme" title="Cambiar tema">
-  <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
-</button>
+<div class="app-outer">
+  <div class="app-frame">
 
-<div class="shell">
-
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="sidebar-logo-name">Revender</span>
-      <div class="sidebar-logo-tag">Identificá · Comprá · Revendé</div>
-    </div>
-
-    <nav class="nav-list" style="display:flex;flex-direction:column;gap:3px;flex:1">
-      <div class="nav-section-label">Principal</div>
-      <button type="button" class="item active" data-view="buscar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span class="item-label">Buscar</span>
-        <span class="count" id="cnt-search"></span>
-      </button>
-      <button type="button" class="item" data-view="historial">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-        <span class="item-label">Historial</span>
-        <span class="count" id="cnt-historial"></span>
-      </button>
-      <button type="button" class="item" data-view="oportunidades">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-        <span class="item-label">Oportunidades</span>
-        <span class="count" id="cnt-oport"></span>
-      </button>
-      <div class="nav-section-label">Herramientas</div>
-      <button type="button" class="item" data-view="alertas">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        <span class="item-label">Alertas</span>
-        <span class="count" id="cnt-alertas"></span>
-      </button>
-      <button type="button" class="item" data-view="importar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
-        <span class="item-label">Importar datos</span>
-      </button>
-    </nav>
-
-    <div class="sidebar-panel" id="sidebar-panel"></div>
-
-    <div class="sidebar-footer">
-      <button type="button" class="icon-btn" id="btn-cmdk-side" title="Buscar (⌘K)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-    </div>
-  </aside>
-
-  <!-- ── MAIN COLUMN ── -->
-  <div class="main-col">
-
-    <!-- Mobile header -->
-    <header class="topheader glass">
-      <div class="brand-mobile">Revender</div>
-      <div class="topheader-actions">
-        <button type="button" class="icon-btn" id="btn-cmdk-mobile" title="Buscar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-        <button type="button" class="icon-btn" id="btn-theme-mobile" title="Cambiar tema">
-          <svg id="theme-icon-mobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
-        </button>
+    <!-- ── TITLEBAR ── -->
+    <div class="app-titlebar">
+      <div class="traffic-lights">
+        <div class="tl tl-red"></div>
+        <div class="tl tl-amber"></div>
+        <div class="tl tl-green"></div>
       </div>
-    </header>
+      <div class="titlebar-sep"></div>
+      <button class="btn-icon" id="btn-toggle-sidebar" title="Menú">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="titlebar-title">Revender — Buscador de oportunidades</div>
+      <button class="btn-icon" id="btn-toggle-panel" title="Panel de actividad">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
+    </div>
 
-    <main>
+    <div class="app-body">
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarMobile()"></div>
 
-      <!-- ── BUSCAR ── -->
-      <section id="view-buscar">
-        <h2>Buscar oportunidad</h2>
-        <div class="sub">Definí marca, modelo, versión, año y zona. La extensión navega Mercado Libre en vivo y trae los resultados automáticamente.</div>
+      <!-- ── SIDEBAR ── -->
+      <aside class="sidebar" id="appSidebar">
+        <div class="sidebar-logo">
+          <span class="sidebar-logo-name">Revender</span>
+          <div class="sidebar-logo-tag">Identificá · Comprá · Revendé</div>
+        </div>
 
-        <div class="card">
-          <div class="form-grid">
-            <div><label>Marca</label><input id="f-marca" placeholder="Peugeot"></div>
-            <div><label>Modelo</label><input id="f-modelo" placeholder="208"></div>
-            <div><label>Versión</label><input id="f-version" placeholder="Active (opcional)"></div>
-            <div><label>Año mínimo</label><input id="f-anio-min" type="number" placeholder="2022"></div>
-            <div><label>Año máximo</label><input id="f-anio-max" type="number" placeholder="2024"></div>
+        <div class="nav-section-label">Principal</div>
+        <button type="button" class="item" data-view="dashboard">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>
+          <span class="item-label">Dashboard</span>
+        </button>
+        <button type="button" class="item" data-view="buscar">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="item-label">Buscar</span>
+        </button>
+        <button type="button" class="item" data-view="oportunidades">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+          <span class="item-label">Oportunidades</span>
+          <span class="nav-count" id="cnt-oport"></span>
+        </button>
+        <div class="nav-section-label">Seguimiento</div>
+        <button type="button" class="item" data-view="historial">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+          <span class="item-label">Historial</span>
+          <span class="nav-count" id="cnt-historial"></span>
+        </button>
+        <button type="button" class="item" data-view="alertas">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="item-label">Alertas</span>
+          <span class="nav-count" id="cnt-alertas"></span>
+        </button>
+        <div class="nav-section-label">Herramientas</div>
+        <button type="button" class="item" data-view="importar">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+          <span class="item-label">Importar datos</span>
+        </button>
+
+        <div class="sidebar-bottom">
+          <button type="button" class="theme-item" id="btn-theme">
+            <svg class="icon-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <svg class="icon-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <span id="theme-label">Modo claro</span>
+          </button>
+          <button type="button" class="item" id="btn-cmdk-side" style="padding:9px 10px;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="item-label">Buscar rápido</span>
+            <span class="tag" style="font-size:10px;padding:1px 6px;">⌘K</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ── MAIN CONTENT ── -->
+      <div class="main-content">
+        <div class="main-topbar">
+          <div class="topbar-search">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="topbar-search-input" type="text" placeholder="Filtrar oportunidades...">
           </div>
-
-          <div style="margin-top:18px">
-            <label>Provincias <span style="font-weight:400;opacity:.6">(dejá vacío para todo el país)</span></label>
-            <div id="f-provincias" class="prov-grid"></div>
+          <div class="topbar-actions">
+            <span class="badge" id="ext-status-badge" style="font-size:11px;">● Sin extensión</span>
+            <button class="btn btn-primary btn-sm" id="btn-nueva-busqueda-top">+ Búsqueda</button>
           </div>
+        </div>
 
-          <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
-            <div><label>Ciudad / localidad (opcional)</label><input id="f-ciudad" placeholder="Ej: Bahía Blanca"></div>
-            <div><label>Radio desde ciudad (km)</label><input id="f-radio-km" type="number" placeholder="Ej: 100"></div>
-            <div>
-              <label>Antigüedad de publicación</label>
-              <select id="f-antiguedad">
-                <option value="">Sin filtro (todas)</option>
-                <option value="hoy">Publicadas hoy</option>
-                <option value="semana">Esta semana</option>
-                <option value="mes">Este último mes</option>
-              </select>
+        <div class="main-scroll" id="main-scroll">
+
+          <!-- ── DASHBOARD ── -->
+          <section id="view-dashboard">
+            <div class="view-header">
+              <h2>Dashboard</h2>
+              <div class="sub">Resumen de actividad y últimas oportunidades detectadas.</div>
             </div>
-          </div>
-
-          <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
-            <div><label>Kilometraje máximo</label><input id="f-km-max" type="number" placeholder="Ej: 120000"></div>
-            <div><label>Precio máximo (ARS, opcional)</label><input id="f-precio-max" type="number" placeholder="Ej: 25000000"></div>
-            <div>
-              <label>Umbral de oportunidad</label>
-              <select id="f-threshold">
-                <option value="15">Conservador (≥15%)</option>
-                <option value="12" selected>Normal (≥12%)</option>
-                <option value="10">Agresivo (≥10%)</option>
-              </select>
+            <div class="stats-row" id="dash-stats"></div>
+            <div style="margin-top:4px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <span style="font-size:13px;font-weight:600;color:var(--text-1)">Últimas oportunidades</span>
+                <button class="btn btn-ghost btn-sm" onclick="showView('oportunidades')">Ver todas →</button>
+              </div>
+              <div class="opp-grid" id="dash-opps"></div>
+              <div id="dash-empty" class="empty" style="display:none">
+                <div class="empty-icon">🚗</div>
+                Todavía no hay oportunidades.<br>
+                <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="showView('buscar')">Empezar búsqueda</button>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div class="btn-row">
-            <button class="btn-primary" id="btn-buscar-extension">Buscar en Mercado Libre</button>
-            <button class="btn-ghost" id="btn-nueva-busqueda">Crear búsqueda manual</button>
+          <!-- ── BUSCAR ── -->
+          <section id="view-buscar" style="display:none">
+            <div class="view-header">
+              <h2>Nueva búsqueda</h2>
+              <div class="sub">La extensión navega Mercado Libre en vivo y trae los resultados automáticamente.</div>
+            </div>
+
+            <div class="card">
+              <div class="form-grid">
+                <div><label>Marca</label><input id="f-marca" placeholder="Toyota"></div>
+                <div><label>Modelo</label><input id="f-modelo" placeholder="Hilux"></div>
+                <div><label>Versión <span style="opacity:.5">(opcional)</span></label><input id="f-version" placeholder="SRV 4x4"></div>
+                <div><label>Año mínimo</label><input id="f-anio-min" type="number" placeholder="2020"></div>
+                <div><label>Año máximo</label><input id="f-anio-max" type="number" placeholder="2023"></div>
+                <div><label>Km máximo</label><input id="f-km-max" type="number" placeholder="120000"></div>
+                <div><label>Precio máx. (ARS)</label><input id="f-precio-max" type="number" placeholder="Opcional"></div>
+                <div>
+                  <label>Antigüedad</label>
+                  <select id="f-antiguedad">
+                    <option value="">Sin filtro</option>
+                    <option value="hoy">Publicadas hoy</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="mes">Último mes</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Umbral oportunidad</label>
+                  <select id="f-threshold">
+                    <option value="15">Conservador ≥15%</option>
+                    <option value="12" selected>Normal ≥12%</option>
+                    <option value="10">Agresivo ≥10%</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:16px">
+                <label>Provincias <span style="opacity:.5">(vacío = todo el país)</span></label>
+                <div id="f-provincias" class="prov-grid"></div>
+              </div>
+
+              <div class="form-grid cols3" style="margin-top:16px">
+                <div><label>Ciudad / localidad</label><input id="f-ciudad" placeholder="Ej: Bahía Blanca"></div>
+                <div><label>Radio (km)</label><input id="f-radio-km" type="number" placeholder="100"></div>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn btn-primary" id="btn-buscar-extension">Buscar en Mercado Libre</button>
+                <button class="btn btn-ghost" id="btn-nueva-busqueda">Crear búsqueda manual</button>
+              </div>
+              <div class="ext-hint" id="extension-hint">⚠ Extensión Revender no detectada. Instalala para usar la búsqueda automática.</div>
+            </div>
+
+            <div id="ultima-busqueda-box" style="margin-top:0"></div>
+          </section>
+
+          <!-- ── HISTORIAL ── -->
+          <section id="view-historial" style="display:none">
+            <div class="view-header">
+              <h2>Historial</h2>
+              <div class="sub">Todas las búsquedas realizadas con sus resultados.</div>
+            </div>
+            <div id="historial-list"></div>
+          </section>
+
+          <!-- ── OPORTUNIDADES ── -->
+          <section id="view-oportunidades" style="display:none">
+            <div class="view-header">
+              <h2>Oportunidades</h2>
+              <div class="sub">Autos publicados por debajo del valor de mercado — dueño directo, precios en USD Blue.</div>
+            </div>
+            <div class="stats-row" id="oport-stats" style="margin-bottom:14px"></div>
+            <div class="table-wrap">
+              <div class="table-toolbar">
+                <span class="table-title">Publicaciones detectadas</span>
+                <span class="table-count" id="oport-count-pill"></span>
+                <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                  <input type="text" id="oport-filter" placeholder="Filtrar..." style="max-width:200px;min-height:32px;font-size:12px;padding:6px 12px;">
+                  <select id="oport-antiguedad-filter" style="max-width:160px;min-height:32px;font-size:12px;padding:6px 10px;">
+                    <option value="">Cualquier fecha</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="mes">Último mes</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Score</th><th>Publicación</th><th>Año</th><th>Km</th>
+                      <th>Precio USD</th><th>Mercado</th><th>Diferencia</th>
+                      <th>Ubicación</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="oport-tbody"></tbody>
+                </table>
+              </div>
+              <div id="oport-empty" class="empty" style="display:none">
+                <div class="empty-icon">🔎</div>
+                No hay resultados todavía. Corré una búsqueda.
+              </div>
+            </div>
+          </section>
+
+          <!-- ── ALERTAS ── -->
+          <section id="view-alertas" style="display:none">
+            <div class="view-header">
+              <h2>Alertas</h2>
+              <div class="sub">Configurá condiciones y recibí avisos cuando un resultado las cumpla.</div>
+            </div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="form-grid cols5">
+                <div><label>Marca</label><input id="a-marca" placeholder="Toyota"></div>
+                <div><label>Modelo</label><input id="a-modelo" placeholder="Hilux"></div>
+                <div><label>Año mín.</label><input id="a-anio-min" type="number" placeholder="2020"></div>
+                <div><label>Km máx.</label><input id="a-km-max" type="number" placeholder="120000"></div>
+                <div><label>% bajo mercado mín.</label><input id="a-desc-min" type="number" placeholder="10"></div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary" id="btn-nueva-alerta">Crear alerta</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <div class="table-scroll">
+                <table>
+                  <thead><tr><th>Marca / Modelo</th><th>Año mín.</th><th>Km máx.</th><th>% mín.</th><th>Estado</th><th></th></tr></thead>
+                  <tbody id="alertas-tbody"></tbody>
+                </table>
+              </div>
+              <div id="alertas-empty" class="empty" style="display:none">
+                <div class="empty-icon">🔔</div>
+                Todavía no creaste alertas.
+              </div>
+            </div>
+          </section>
+
+          <!-- ── IMPORTAR ── -->
+          <section id="view-importar" style="display:none">
+            <div class="view-header">
+              <h2>Importar resultados</h2>
+              <div class="sub">Pegá el JSON de resultados para integrarlos al historial y oportunidades.</div>
+            </div>
+            <div class="card">
+              <label>JSON de resultados</label>
+              <textarea id="import-json" placeholder='{"marca":"Toyota","modelo":"Hilux","anioMin":2020,"anioMax":2023,"resultados":[]}'></textarea>
+              <div class="btn-row">
+                <button class="btn btn-primary" id="btn-importar">Importar</button>
+                <button class="btn btn-ghost" id="btn-ejemplo">Cargar ejemplo</button>
+              </div>
+              <div id="import-status" style="margin-top:10px;font-size:12px;color:var(--text-2)"></div>
+            </div>
+          </section>
+
+        </div><!-- /main-scroll -->
+      </div><!-- /main-content -->
+
+      <!-- ── RIGHT PANEL ── -->
+      <div class="right-panel" id="rightPanel">
+        <div class="panel-section">
+          <div class="panel-section-title">Actividad reciente</div>
+          <div id="panel-actividad">
+            <div class="alert-item"><div class="alert-dot" style="background:var(--text-3)"></div><div><div class="alert-text" style="color:var(--text-3)">Sin actividad todavía</div></div></div>
           </div>
-          <div class="sub" style="margin-top:10px;margin-bottom:0">"Buscar en Mercado Libre" usa la extensión y abre una pestaña real con resultados automáticos. "Crear búsqueda manual" genera un mensaje para copiar y pegar en Claude.</div>
-          <div id="extension-hint" class="sub" style="margin-top:6px;display:none;color:var(--warn)">⚠ No detecté la extensión Revender instalada. Instalala para usar la búsqueda automática.</div>
         </div>
-
-        <div id="ultima-busqueda-box"></div>
-      </section>
-
-      <!-- ── HISTORIAL ── -->
-      <section id="view-historial" style="display:none">
-        <h2>Historial de búsquedas</h2>
-        <div class="sub">Todas las búsquedas realizadas, con sus resultados y análisis de oportunidades.</div>
-        <div id="historial-list"></div>
-      </section>
-
-      <!-- ── OPORTUNIDADES ── -->
-      <section id="view-oportunidades" style="display:none">
-        <h2>Oportunidades detectadas</h2>
-        <div class="sub">Autos publicados por debajo del valor de mercado — dueño directo, precios en USD al dólar Blue (dolarhoy.com).</div>
-        <div class="grid-stats" id="oport-stats"></div>
-        <div class="card">
-          <div class="toolbar">
-            <input type="text" id="oport-filter" placeholder="Filtrar por marca o modelo...">
-            <select id="oport-antiguedad-filter" style="max-width:200px">
-              <option value="">Cualquier antigüedad</option>
-              <option value="hoy">Publicadas hoy</option>
-              <option value="semana">Última semana</option>
-              <option value="mes">Último mes</option>
-            </select>
-            <span class="pill" id="oport-count-pill"></span>
-          </div>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Score</th>
-                  <th>Vehículo</th>
-                  <th>Año</th>
-                  <th>Km</th>
-                  <th>Precio USD Blue</th>
-                  <th>Valor Mercado</th>
-                  <th>% Reboleo</th>
-                  <th>Ubicación</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="oport-tbody"></tbody>
-            </table>
-          </div>
-          <div id="oport-empty" class="empty" style="display:none">
-            <div class="big">🔎</div>
-            No hay resultados todavía.<br>Corré una búsqueda para ver las oportunidades.
+        <div class="panel-section">
+          <div class="panel-section-title">Resumen del día</div>
+          <div id="panel-resumen">
+            <div class="mini-stat"><span class="mini-stat-label">Búsquedas</span><span class="mini-stat-val" id="pr-busquedas">0</span></div>
+            <div class="mini-stat"><span class="mini-stat-label">Oportunidades</span><span class="mini-stat-val" id="pr-oport" style="color:var(--profit)">0</span></div>
+            <div class="mini-stat"><span class="mini-stat-label">Mejor margen</span><span class="mini-stat-val" id="pr-margen">—</span></div>
+            <div class="mini-stat"><span class="mini-stat-label">Publicaciones</span><span class="mini-stat-val" id="pr-pubs">0</span></div>
           </div>
         </div>
-      </section>
-
-      <!-- ── ALERTAS ── -->
-      <section id="view-alertas" style="display:none">
-        <h2>Alertas</h2>
-        <div class="sub">Configurá condiciones de alerta. Cuando un resultado nuevo las cumpla, aparecerá destacado.</div>
-        <div class="card">
-          <div class="form-grid alerts">
-            <div><label>Marca</label><input id="a-marca" placeholder="Peugeot"></div>
-            <div><label>Modelo</label><input id="a-modelo" placeholder="208"></div>
-            <div><label>Año mín.</label><input id="a-anio-min" type="number" placeholder="2022"></div>
-            <div><label>Km máx.</label><input id="a-km-max" type="number" placeholder="120000"></div>
-            <div><label>% bajo mercado mín.</label><input id="a-desc-min" type="number" placeholder="10"></div>
-          </div>
-          <div class="btn-row">
-            <button class="btn-primary" id="btn-nueva-alerta">Crear alerta</button>
-          </div>
+        <div class="panel-section">
+          <div class="panel-section-title">Top marcas</div>
+          <div class="chart-bar-row" id="panel-marcas"></div>
         </div>
-        <div class="card">
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Marca / Modelo</th>
-                  <th>Año mín.</th>
-                  <th>Km máx.</th>
-                  <th>% mín. bajo mercado</th>
-                  <th>Estado</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="alertas-tbody"></tbody>
-            </table>
-          </div>
-          <div id="alertas-empty" class="empty" style="display:none">
-            <div class="big">🔔</div>
-            Todavía no creaste alertas.
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <!-- ── IMPORTAR ── -->
-      <section id="view-importar" style="display:none">
-        <h2>Importar resultados</h2>
-        <div class="sub">Pegá el JSON de resultados que te pase Claude para integrarlos al historial, oportunidades y alertas automáticamente.</div>
-        <div class="card">
-          <label>JSON de resultados</label>
-          <textarea id="import-json" placeholder='{"marca":"Peugeot","modelo":"208","anioMin":2022,"anioMax":2024,"resultados":[{"titulo":"...","anio":2022,"km":49000,"precio":16990,"moneda":"USD","ubicacion":"Mar del Plata","link":"https://...","valorMercado":18500,"diasPublicado":3,"esOportunidad":false,"motivo":"","riesgos":""}]}'></textarea>
-          <div class="sub" style="margin-top:8px">Tip: <code>diasPublicado</code> es opcional — cuántos días hace que se publicó el aviso (0 = hoy, ≤7 = esta semana, ≤30 = este mes).</div>
-          <div class="btn-row">
-            <button class="btn-primary" id="btn-importar">Importar</button>
-            <button class="btn-ghost" id="btn-ejemplo">Cargar ejemplo (Peugeot 208)</button>
-          </div>
-          <div id="import-status" class="sub" style="margin-top:10px"></div>
-        </div>
-      </section>
+    </div><!-- /app-body -->
+  </div><!-- /app-frame -->
+</div><!-- /app-outer -->
 
-    </main>
-  </div><!-- /main-col -->
-
-  <!-- Mobile tabbar -->
-  <nav class="tabbar glass">
-    <button type="button" class="item tab-item active" data-view="buscar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <span>Buscar</span>
-    </button>
-    <button type="button" class="item tab-item" data-view="historial">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-      <span>Historial</span>
-    </button>
-    <button type="button" class="item tab-item" data-view="oportunidades">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-      <span>Oportunidades</span>
-    </button>
-    <button type="button" class="item tab-item" data-view="alertas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-      <span>Alertas</span>
-    </button>
-    <button type="button" class="item tab-item" data-view="importar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
-      <span>Importar</span>
-    </button>
-  </nav>
-
-</div><!-- /shell -->
+<!-- Mobile tabbar -->
+<nav class="tabbar">
+  <button type="button" class="item tab-item" data-view="dashboard">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>
+    <span>Inicio</span>
+  </button>
+  <button type="button" class="item tab-item" data-view="buscar">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span>Buscar</span>
+  </button>
+  <button type="button" class="item tab-item" data-view="oportunidades">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+    <span>Opport.</span>
+  </button>
+  <button type="button" class="item tab-item" data-view="historial">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+    <span>Historial</span>
+  </button>
+  <button type="button" class="item tab-item" data-view="alertas">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    <span>Alertas</span>
+  </button>
+</nav>
 
 <!-- Command palette -->
 <div class="cmdk-overlay" id="cmdk-overlay">
   <div class="cmdk-box">
     <div class="cmdk-input-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="cmdk-input" type="text" placeholder="Ir a una sección..." autocomplete="off">
     </div>
     <div class="cmdk-list" id="cmdk-list"></div>
@@ -872,10 +752,10 @@ tr:hover td { background: var(--hover-bg); }
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h3>Confirmar eliminación</h3>
-    <p class="sub" style="margin-bottom:0">Esta acción no se puede deshacer.</p>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:0">Esta acción no se puede deshacer.</p>
     <div class="btn-row">
-      <button class="btn-danger" id="modal-confirm">Eliminar</button>
-      <button class="btn-ghost" id="modal-cancel">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="modal-confirm">Eliminar</button>
+      <button class="btn btn-ghost btn-sm" id="modal-cancel">Cancelar</button>
     </div>
   </div>
 </div>
@@ -888,599 +768,594 @@ const STORAGE_KEY = 'gonzalito_autos_data_v1';
 
 function seedData(){
   return {
-    historial: [{
-      id: 'b_seed_peugeot208',
-      marca: 'Peugeot', modelo: '208', anioMin: 2022, anioMax: 2024,
-      fecha: new Date().toISOString(),
-      resultados: [
-        {titulo:"208 1.0 T200 GT CVT", anio:2024, km:14000, precio:24000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3323446644-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:21000, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.6 Active Tiptronic", anio:2022, km:49000, precio:16990, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1831325953-peugeot-208-16-active-tiptronic-_JM", valorMercado:18000, esOportunidad:false, motivo:"", riesgos:"Precio justificado por mayor km y versión de menor equipamiento"},
-        {titulo:"208 1.6 Feline Automático", anio:2022, km:6000, precio:18815, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1799124153-peugeot-208-16-feline-automatico-_JM", valorMercado:18800, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.0 T200 GT CVT", anio:2024, km:22000, precio:20000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1839304013-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:20500, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.6 Active Pack", anio:2023, km:19000, precio:18500, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3289180450-peugeot-208-16-active-pack-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.6 Active Pack Tiptronic", anio:2024, km:29897, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3152830582-peugeot-208-16-active-pack-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.6 Feline Tiptronic", anio:2022, km:37000, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3112220034-peugeot-208-16-feline-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 1.6 Style Tiptronic", anio:2023, km:36000, precio:18467, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3410941708-peugeot-208-16-style-tiptronic-_JM", valorMercado:18500, esOportunidad:false, motivo:"", riesgos:""},
-        {titulo:"208 Style At", anio:2023, km:23000, precio:18500, moneda:"USD", ubicacion:"Buenos Aires", link:"https://auto.mercadolibre.com.ar/MLA-1831467409-peugeot-208-2023-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""}
+    historial:[{
+      id:'b_seed_peugeot208',marca:'Peugeot',modelo:'208',anioMin:2022,anioMax:2024,
+      fecha:new Date().toISOString(),
+      resultados:[
+        {titulo:"208 1.0 T200 GT CVT",anio:2024,km:14000,precio:24000,moneda:"USD",ubicacion:"Mar del Plata",link:"https://auto.mercadolibre.com.ar/MLA-3323446644",valorMercado:21000,esOportunidad:false,motivo:"",riesgos:""},
+        {titulo:"208 1.6 Active Tiptronic",anio:2022,km:49000,precio:16990,moneda:"USD",ubicacion:"Mar del Plata",link:"https://auto.mercadolibre.com.ar/MLA-1831325953",valorMercado:18000,esOportunidad:false,motivo:"",riesgos:""},
+        {titulo:"208 1.6 Feline Automático",anio:2022,km:6000,precio:15800,moneda:"USD",ubicacion:"Buenos Aires",link:"https://auto.mercadolibre.com.ar/MLA-1799124153",valorMercado:18800,esOportunidad:true,motivo:"Precio 16% bajo mercado",riesgos:""},
       ]
     }],
-    alertas: []
+    alertas:[]
   };
 }
 function loadData(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw) return JSON.parse(raw);
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(raw) try{return JSON.parse(raw);}catch(e){}
   return seedData();
 }
-function saveData(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function saveData(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}
+let DB=loadData();
+let pendingDelete=null;
 
-let DB = loadData();
-let pendingDelete = null;
-
-const fmtMoney = (v, currency) => {
-  if(v == null) return '—';
-  const symbol = currency === 'USD' ? 'US$' : '$';
-  return symbol + ' ' + Math.round(v).toLocaleString('es-AR');
+const fmtMoney=(v,currency)=>{
+  if(v==null)return'—';
+  const s=currency==='USD'?'US$':'$';
+  return s+' '+Math.round(v).toLocaleString('es-AR');
 };
 
-function diffPct(precio, valorMercado){
-  if(!valorMercado) return null;
-  return Math.round(((valorMercado - precio) / valorMercado) * 100);
+function diffPct(precio,valorMercado){
+  if(!valorMercado)return null;
+  return Math.round(((valorMercado-precio)/valorMercado)*100);
 }
 
-// ---------- NAV (sidebar desktop + tab bar mobile share data-view) ----------
+function scoreDots(pct){
+  if(pct===null||pct===undefined)return'<span style="color:var(--text-3)">—</span>';
+  const filled=pct>=20?5:pct>=15?4:pct>=12?3:pct>=8?2:pct>=5?1:0;
+  const isAmber=pct>=5&&pct<10;
+  const dots=Array.from({length:5},(_,i)=>`<span class="score-dot${i<filled?' on'+(isAmber?' amber':''):''}"></span>`).join('');
+  const col=pct>=12?'var(--profit)':pct>=5?'var(--warn)':'var(--risk)';
+  return `<div class="score-bar"><div class="score-dots">${dots}</div><span class="score-val" style="color:${col}">${pct>0?'+':''}${pct}%</span></div>`;
+}
+
+// ── LAYOUT TOGGLES ──
+function toggleSidebar(){
+  const s=document.getElementById('appSidebar');
+  const mobile=window.innerWidth<=768;
+  if(mobile){s.classList.toggle('mobile-open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+  else s.classList.toggle('collapsed');
+}
+function closeSidebarMobile(){
+  document.getElementById('appSidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+function toggleRightPanel(){
+  document.getElementById('rightPanel').classList.toggle('collapsed');
+}
+document.getElementById('btn-toggle-sidebar').addEventListener('click',toggleSidebar);
+document.getElementById('btn-toggle-panel').addEventListener('click',toggleRightPanel);
+
+// ── THEME ──
+function applyThemeLabel(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const lbl=document.getElementById('theme-label');
+  if(lbl)lbl.textContent=dark?'Modo claro':'Modo oscuro';
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('gonzalito_theme',next);
+  applyThemeLabel();
+}
+document.getElementById('btn-theme').addEventListener('click',toggleTheme);
+applyThemeLabel();
+
+// ── TOASTS ──
+function showToast(message,type){
+  const c=document.getElementById('toast-container');
+  const el=document.createElement('div');
+  el.className='toast glass toast-'+(type||'info');
+  el.textContent=message;
+  c.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),250);},3200);
+}
+
+// ── NAV ──
+const ALL_VIEWS=['dashboard','buscar','historial','oportunidades','alertas','importar'];
 document.querySelectorAll('.item[data-view]').forEach(el=>{
-  el.addEventListener('click', ()=> showView(el.dataset.view));
+  el.addEventListener('click',()=>showView(el.dataset.view));
 });
 function showView(view){
   document.querySelectorAll('.item[data-view]').forEach(i=>i.classList.remove('active'));
   document.querySelectorAll(`.item[data-view="${view}"]`).forEach(i=>i.classList.add('active'));
-  ['buscar','historial','oportunidades','alertas','importar'].forEach(v=>{
-    document.getElementById('view-'+v).style.display = (v===view)?'block':'none';
+  ALL_VIEWS.forEach(v=>{
+    const s=document.getElementById('view-'+v);
+    if(s)s.style.display=(v===view)?'block':'none';
   });
-  window.scrollTo(0,0);
+  const scroll=document.getElementById('main-scroll');
+  if(scroll)scroll.scrollTop=0;
   renderAll();
+  closeSidebarMobile();
 }
 
-// ---------- THEME ----------
-const SUN_PATH = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-const MOON_PATH = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>';
-function applyThemeIcon(){
-  const theme = document.documentElement.getAttribute('data-theme');
-  const path = theme === 'dark' ? SUN_PATH : MOON_PATH;
-  ['theme-icon','theme-icon-mobile'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = path;
-  });
-}
-function toggleTheme(){
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('gonzalito_theme', next);
-  applyThemeIcon();
-}
-document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
-document.getElementById('btn-theme-mobile')?.addEventListener('click', toggleTheme);
-applyThemeIcon();
+// ── TOPBAR SEARCH → filter oportunidades ──
+document.getElementById('topbar-search-input').addEventListener('input',e=>{
+  const v=e.target.value;
+  const of=document.getElementById('oport-filter');
+  if(of)of.value=v;
+  if(v&&document.getElementById('view-oportunidades').style.display==='none'){
+    showView('oportunidades');
+  }else{
+    renderOportunidades();
+  }
+});
+document.getElementById('btn-nueva-busqueda-top').addEventListener('click',()=>showView('buscar'));
 
-// ---------- TOASTS ----------
-function showToast(message, type){
-  const container = document.getElementById('toast-container');
-  const el = document.createElement('div');
-  el.className = 'toast glass toast-' + (type || 'info');
-  el.textContent = message;
-  container.appendChild(el);
-  requestAnimationFrame(()=> el.classList.add('show'));
-  setTimeout(()=>{
-    el.classList.remove('show');
-    setTimeout(()=> el.remove(), 250);
-  }, 3200);
-}
-
-// ---------- COMMAND PALETTE ----------
-const CMDK_ITEMS = [
-  {label:'Buscar oportunidad', view:'buscar'},
-  {label:'Historial de búsquedas', view:'historial'},
-  {label:'Oportunidades detectadas', view:'oportunidades'},
-  {label:'Alertas', view:'alertas'},
-  {label:'Importar datos', view:'importar'},
+// ── CMDK ──
+const CMDK_ITEMS=[
+  {label:'Dashboard',view:'dashboard'},
+  {label:'Buscar oportunidad',view:'buscar'},
+  {label:'Historial de búsquedas',view:'historial'},
+  {label:'Oportunidades detectadas',view:'oportunidades'},
+  {label:'Alertas',view:'alertas'},
+  {label:'Importar datos',view:'importar'},
 ];
-const cmdkOverlay = document.getElementById('cmdk-overlay');
-const cmdkInput = document.getElementById('cmdk-input');
-const cmdkList = document.getElementById('cmdk-list');
+const cmdkOverlay=document.getElementById('cmdk-overlay');
+const cmdkInput=document.getElementById('cmdk-input');
+const cmdkList=document.getElementById('cmdk-list');
 function renderCmdkList(filter){
-  const q = (filter||'').toLowerCase();
-  const items = CMDK_ITEMS.filter(i => i.label.toLowerCase().includes(q));
-  if(!items.length){ cmdkList.innerHTML = '<div class="cmdk-empty">Sin resultados</div>'; return; }
-  cmdkList.innerHTML = items.map((i,idx)=>`
+  const q=(filter||'').toLowerCase();
+  const items=CMDK_ITEMS.filter(i=>i.label.toLowerCase().includes(q));
+  if(!items.length){cmdkList.innerHTML='<div class="cmdk-empty">Sin resultados</div>';return;}
+  cmdkList.innerHTML=items.map((i,idx)=>`
     <div class="cmdk-item${idx===0?' hl':''}" data-view="${i.view}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       ${i.label}
     </div>`).join('');
   cmdkList.querySelectorAll('.cmdk-item').forEach(el=>{
-    el.addEventListener('click', ()=>{ showView(el.dataset.view); closeCmdk(); });
+    el.addEventListener('click',()=>{showView(el.dataset.view);closeCmdk();});
   });
 }
-function openCmdk(){
-  cmdkOverlay.classList.add('open');
-  cmdkInput.value = '';
-  renderCmdkList('');
-  setTimeout(()=> cmdkInput.focus(), 30);
-}
-function closeCmdk(){ cmdkOverlay.classList.remove('open'); }
-cmdkInput?.addEventListener('input', ()=> renderCmdkList(cmdkInput.value));
-cmdkInput?.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter'){
-    const first = cmdkList.querySelector('.cmdk-item');
-    if(first){ showView(first.dataset.view); closeCmdk(); }
+function openCmdk(){cmdkOverlay.classList.add('open');cmdkInput.value='';renderCmdkList('');setTimeout(()=>cmdkInput.focus(),30);}
+function closeCmdk(){cmdkOverlay.classList.remove('open');}
+cmdkInput?.addEventListener('input',()=>renderCmdkList(cmdkInput.value));
+cmdkInput?.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){const f=cmdkList.querySelector('.cmdk-item');if(f){showView(f.dataset.view);closeCmdk();}}
+  if(e.key==='Escape')closeCmdk();
+});
+cmdkOverlay?.addEventListener('click',e=>{if(e.target===cmdkOverlay)closeCmdk();});
+document.getElementById('btn-cmdk-side')?.addEventListener('click',openCmdk);
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdkOverlay.classList.contains('open')?closeCmdk():openCmdk();}
+});
+
+// ── EXTENSION BRIDGE ──
+let extensionDetected=false;
+let lastExtensionParams=null;
+
+window.addEventListener('gonzalito:extension-ready',()=>{
+  extensionDetected=true;
+  document.getElementById('extension-hint').style.display='none';
+  const b=document.getElementById('ext-status-badge');
+  if(b){b.textContent='● En vivo';b.className='badge badge-profit';b.style.fontSize='11px';}
+});
+window.addEventListener('gonzalito:context-lost',()=>showToast('Extensión recargada — recargá la página (F5)','error'));
+
+setTimeout(()=>{
+  if(!extensionDetected){
+    document.getElementById('extension-hint').style.display='block';
+    const b=document.getElementById('ext-status-badge');
+    if(b){b.textContent='● Sin extensión';b.className='badge badge-warn';b.style.fontSize='11px';}
   }
-  if(e.key === 'Escape') closeCmdk();
-});
-cmdkOverlay?.addEventListener('click', (e)=>{ if(e.target === cmdkOverlay) closeCmdk(); });
-document.getElementById('btn-cmdk-side')?.addEventListener('click', openCmdk);
-document.getElementById('btn-cmdk-mobile')?.addEventListener('click', openCmdk);
-document.addEventListener('keydown', (e)=>{
-  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
-    e.preventDefault();
-    cmdkOverlay.classList.contains('open') ? closeCmdk() : openCmdk();
-  }
-});
-
-// ---------- PUENTE CON LA EXTENSIÓN ----------
-let extensionDetected = false;
-
-window.addEventListener('gonzalito:extension-ready', () => {
-  extensionDetected = true;
-  document.getElementById('extension-hint').style.display = 'none';
-});
-
-window.addEventListener('gonzalito:context-lost', () => {
-  showToast('La extensión fue recargada — recargá esta página (F5) para seguir usándola', 'error');
-});
-
-setTimeout(() => {
-  if (!extensionDetected) {
-    document.getElementById('extension-hint').style.display = 'block';
-  }
-}, 1200);
+},1200);
 
 function mapBackendRowToResultado(row){
-  return {
-    titulo: row.titulo,
-    anio: row.anio,
-    km: row.km,
-    precio: row.precio,
-    moneda: row.moneda,
-    ubicacion: row.ubicacion,
-    link: row.link,
-    valorMercado: row.valorMercado,
-    score: row.score,
-    recomendacion: row.recomendacion,
-    esOportunidad: row.esOportunidad,
-    motivo: row.motivo,
-    riesgos: row.riesgos
-  };
+  return{titulo:row.titulo,anio:row.anio,km:row.km,precio:row.precio,moneda:row.moneda,
+    ubicacion:row.ubicacion,link:row.link,valorMercado:row.valorMercado,score:row.score,
+    recomendacion:row.recomendacion,esOportunidad:row.esOportunidad,motivo:row.motivo,riesgos:row.riesgos};
 }
 
-function upsertBusquedaPorExtension(searchId, patch){
-  let entry = DB.historial.find(b => b.id === searchId);
+function upsertBusquedaPorExtension(searchId,patch){
+  let entry=DB.historial.find(b=>b.id===searchId);
   if(!entry){
-    entry = {
-      id: searchId,
-      marca: lastExtensionParams?.marca || '',
-      modelo: lastExtensionParams?.modelo || '',
-      version: lastExtensionParams?.version || '',
-      anioMin: lastExtensionParams?.anioMin || null,
-      anioMax: lastExtensionParams?.anioMax || null,
-      provincias: [], ciudad: '', radioKm: null, antiguedad: '',
-      fecha: new Date().toISOString(),
-      resultados: [],
-      origen: 'extension',
-      estado: 'pendiente'
-    };
+    entry={id:searchId,marca:lastExtensionParams?.marca||'',modelo:lastExtensionParams?.modelo||'',
+      version:lastExtensionParams?.version||'',anioMin:lastExtensionParams?.anioMin||null,
+      anioMax:lastExtensionParams?.anioMax||null,provincias:[],ciudad:'',radioKm:null,
+      antiguedad:'',fecha:new Date().toISOString(),resultados:[],origen:'extension',estado:'pendiente'};
     DB.historial.unshift(entry);
   }
-  Object.assign(entry, patch);
+  Object.assign(entry,patch);
   saveData(DB);
 }
 
-let lastExtensionParams = null;
-
-window.addEventListener('gonzalito:status', (e) => {
-  const { searchId, status, message } = e.detail;
-  if(!searchId){
-    showToast(message || 'Error iniciando la búsqueda', 'error');
-    return;
-  }
-  upsertBusquedaPorExtension(searchId, { estado: status, estadoMensaje: message });
+window.addEventListener('gonzalito:status',e=>{
+  const{searchId,status,message}=e.detail;
+  if(!searchId){showToast(message||'Error iniciando la búsqueda','error');return;}
+  upsertBusquedaPorExtension(searchId,{estado:status,estadoMensaje:message});
   renderAll();
-  if(status === 'error') showToast(message || 'Ocurrió un error', 'error');
+  if(status==='error')showToast(message||'Ocurrió un error','error');
 });
 
-window.addEventListener('gonzalito:resultado', (e) => {
-  const { searchId, result } = e.detail;
-  const resultados = [
-    ...(result.oportunidades || []).map(mapBackendRowToResultado),
-    ...(result.descartadas || []).map(mapBackendRowToResultado)
+window.addEventListener('gonzalito:resultado',e=>{
+  const{searchId,result}=e.detail;
+  const resultados=[
+    ...(result.oportunidades||[]).map(mapBackendRowToResultado),
+    ...(result.descartadas||[]).map(mapBackendRowToResultado)
   ];
-  upsertBusquedaPorExtension(searchId, { estado: 'completada', resultados });
+  upsertBusquedaPorExtension(searchId,{estado:'completada',resultados});
   renderAll();
-  const n = (result.oportunidades || []).length;
-  showToast(n > 0 ? `${n} oportunidad(es) detectada(s)` : 'Búsqueda completada, sin oportunidades', n>0?'success':'info');
+  const n=(result.oportunidades||[]).length;
+  showToast(n>0?`${n} oportunidad(es) detectada(s)`:'Búsqueda completada, sin oportunidades',n>0?'success':'info');
 });
 
-document.getElementById('btn-buscar-extension').addEventListener('click', () => {
-  const marca = document.getElementById('f-marca').value.trim();
-  const modelo = document.getElementById('f-modelo').value.trim();
-  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
-  if(!extensionDetected){
-    showToast('La extensión no está instalada o no se detectó en esta página', 'error');
-    document.getElementById('extension-hint').style.display = 'block';
-    return;
-  }
-  const params = {
-    marca, modelo,
-    version: document.getElementById('f-version').value.trim(),
-    anioMin: parseInt(document.getElementById('f-anio-min').value) || null,
-    anioMax: parseInt(document.getElementById('f-anio-max').value) || null,
-    kmMax: parseInt(document.getElementById('f-km-max').value) || null,
-    precioMax: parseFloat(document.getElementById('f-precio-max').value) || null,
-    zona: describeZona({ provincias: getSelectedProvincias(), ciudad: document.getElementById('f-ciudad').value.trim(), radioKm: parseInt(document.getElementById('f-radio-km').value)||null }),
-    antiguedad: document.getElementById('f-antiguedad').value || '',
-    threshold: parseInt(document.getElementById('f-threshold').value) || 12
-  };
-  lastExtensionParams = params;
-  window.dispatchEvent(new CustomEvent('gonzalito:buscar', { detail: params }));
-  showToast('Búsqueda enviada a la extensión...', 'info');
-});
-
-// ---------- BUSCAR ----------
-const PROVINCIAS_AR = [
-  "Buenos Aires","CABA","Córdoba","Santa Fe","Mendoza","Entre Ríos",
-  "La Pampa","Neuquén","Río Negro","Chubut","Santa Cruz","Tierra del Fuego",
-  "Salta","Jujuy","Tucumán","Santiago del Estero","Catamarca","La Rioja",
-  "San Juan","San Luis","Corrientes","Misiones","Chaco","Formosa"
-];
+// ── BUSCAR ──
+const PROVINCIAS_AR=["Buenos Aires","CABA","Córdoba","Santa Fe","Mendoza","Entre Ríos","La Pampa","Neuquén","Río Negro","Chubut","Santa Cruz","Tierra del Fuego","Salta","Jujuy","Tucumán","Santiago del Estero","Catamarca","La Rioja","San Juan","San Luis","Corrientes","Misiones","Chaco","Formosa"];
 
 function renderProvinciasChips(){
-  const cont = document.getElementById('f-provincias');
-  cont.innerHTML = PROVINCIAS_AR.map(p=>`
-    <label class="prov-chip" data-prov="${p}">
-      <input type="checkbox" value="${p}"> ${p}
-    </label>`).join('');
+  const cont=document.getElementById('f-provincias');
+  cont.innerHTML=PROVINCIAS_AR.map(p=>`<label class="prov-chip" data-prov="${p}"><input type="checkbox" value="${p}"> ${p}</label>`).join('');
   cont.querySelectorAll('.prov-chip').forEach(chip=>{
-    const input = chip.querySelector('input');
-    input.addEventListener('change', ()=> chip.classList.toggle('checked', input.checked));
+    const input=chip.querySelector('input');
+    input.addEventListener('change',()=>chip.classList.toggle('checked',input.checked));
   });
 }
 renderProvinciasChips();
 
-function getSelectedProvincias(){
-  return Array.from(document.querySelectorAll('#f-provincias input:checked')).map(i=>i.value);
-}
+function getSelectedProvincias(){return Array.from(document.querySelectorAll('#f-provincias input:checked')).map(i=>i.value);}
 
-document.getElementById('btn-nueva-busqueda').addEventListener('click', ()=>{
-  const marca = document.getElementById('f-marca').value.trim();
-  const modelo = document.getElementById('f-modelo').value.trim();
-  const version = document.getElementById('f-version').value.trim();
-  const anioMin = parseInt(document.getElementById('f-anio-min').value) || null;
-  const anioMax = parseInt(document.getElementById('f-anio-max').value) || null;
-  const provincias = getSelectedProvincias();
-  const ciudad = document.getElementById('f-ciudad').value.trim();
-  const radioKm = parseInt(document.getElementById('f-radio-km').value) || null;
-  const antiguedad = document.getElementById('f-antiguedad').value;
-  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
-  const entry = {
-    id: 'b' + Date.now(),
-    marca, modelo, version, anioMin, anioMax,
-    provincias, ciudad, radioKm, antiguedad,
-    fecha: new Date().toISOString(),
-    resultados: []
-  };
-  DB.historial.unshift(entry);
-  saveData(DB);
-  document.getElementById('f-marca').value='';
-  document.getElementById('f-modelo').value='';
-  document.getElementById('f-version').value='';
-  document.getElementById('f-anio-min').value='';
-  document.getElementById('f-anio-max').value='';
-  document.getElementById('f-ciudad').value='';
-  document.getElementById('f-radio-km').value='';
-  document.getElementById('f-antiguedad').value='';
-  document.querySelectorAll('#f-provincias input:checked').forEach(i=>{ i.checked=false; i.closest('.prov-chip').classList.remove('checked'); });
-  renderUltimaBusqueda();
-  renderAll();
-  showToast(`Búsqueda creada: ${marca} ${modelo}`, 'success');
-});
-
-const ANTIGUEDAD_LABEL = { hoy:'Publicadas hoy', semana:'Esta semana', mes:'Último mes' };
+const ANTIGUEDAD_LABEL={hoy:'Publicadas hoy',semana:'Esta semana',mes:'Último mes'};
 
 function describeZona(b){
-  const parts = [];
-  if(b.provincias && b.provincias.length) parts.push(b.provincias.join(', '));
-  if(b.ciudad) parts.push(b.ciudad + (b.radioKm? ` (radio ${b.radioKm} km)` : ''));
-  return parts.length ? parts.join(' · ') : 'Todo el país';
+  const parts=[];
+  if(b.provincias&&b.provincias.length)parts.push(b.provincias.join(', '));
+  if(b.ciudad)parts.push(b.ciudad+(b.radioKm?` (radio ${b.radioKm} km)`:''));
+  return parts.length?parts.join(' · '):'Todo el país';
 }
 
+document.getElementById('btn-buscar-extension').addEventListener('click',()=>{
+  const marca=document.getElementById('f-marca').value.trim();
+  const modelo=document.getElementById('f-modelo').value.trim();
+  if(!marca||!modelo){showToast('Completá marca y modelo','error');return;}
+  if(!extensionDetected){
+    showToast('La extensión no está instalada o no se detectó','error');
+    document.getElementById('extension-hint').style.display='block';
+    return;
+  }
+  const params={
+    marca,modelo,
+    version:document.getElementById('f-version').value.trim(),
+    anioMin:parseInt(document.getElementById('f-anio-min').value)||null,
+    anioMax:parseInt(document.getElementById('f-anio-max').value)||null,
+    kmMax:parseInt(document.getElementById('f-km-max').value)||null,
+    precioMax:parseFloat(document.getElementById('f-precio-max').value)||null,
+    zona:describeZona({provincias:getSelectedProvincias(),ciudad:document.getElementById('f-ciudad').value.trim(),radioKm:parseInt(document.getElementById('f-radio-km').value)||null}),
+    antiguedad:document.getElementById('f-antiguedad').value||'',
+    threshold:parseInt(document.getElementById('f-threshold').value)||12
+  };
+  lastExtensionParams=params;
+  window.dispatchEvent(new CustomEvent('gonzalito:buscar',{detail:params}));
+  showToast('Búsqueda enviada a la extensión...','info');
+});
+
 function buildClaudePrompt(b){
-  const partes = [
-    `Ejecutá la búsqueda con id ${b.id}:`,
-    `Marca: ${b.marca}`,
-    `Modelo: ${b.modelo}`,
-  ];
-  if(b.version) partes.push(`Versión: ${b.version}`);
+  const partes=[`Ejecutá la búsqueda con id ${b.id}:`,`Marca: ${b.marca}`,`Modelo: ${b.modelo}`];
+  if(b.version)partes.push(`Versión: ${b.version}`);
   partes.push(`Año: entre ${b.anioMin||'?'} y ${b.anioMax||'?'}`);
   partes.push(`Zona: ${describeZona(b)}`);
-  if(b.antiguedad) partes.push(`Antigüedad de publicación: ${ANTIGUEDAD_LABEL[b.antiguedad]}`);
+  if(b.antiguedad)partes.push(`Antigüedad de publicación: ${ANTIGUEDAD_LABEL[b.antiguedad]}`);
   partes.push(`Navegá Mercado Libre, analizá las publicaciones y devolveme el JSON listo para pegar en "Importar datos" con ese mismo id (${b.id}).`);
   return partes.join('\n');
 }
 
 function copyClaudePrompt(id){
-  const b = DB.historial.find(x=>x.id===id);
-  if(!b) return;
-  const text = buildClaudePrompt(b);
-  navigator.clipboard.writeText(text).then(()=>{
-    showToast('Mensaje copiado, pegalo en el chat con Claude', 'success');
-  }).catch(()=>{
-    showToast('No se pudo copiar automáticamente, copiá el texto manualmente', 'error');
-  });
+  const b=DB.historial.find(x=>x.id===id);if(!b)return;
+  navigator.clipboard.writeText(buildClaudePrompt(b))
+    .then(()=>showToast('Mensaje copiado, pegalo en el chat con Claude','success'))
+    .catch(()=>showToast('No se pudo copiar automáticamente','error'));
 }
 
-const ESTADO_LABEL = {
-  pendiente: { text: '⏳ Pendiente', cls: 'pill' },
-  buscando: { text: '🔎 Buscando en Mercado Libre...', cls: 'badge warn' },
-  analizando: { text: '🧮 Analizando publicaciones...', cls: 'badge warn' },
-  completada: { text: '✅ Completada', cls: 'badge ok' },
-  error: { text: '⚠ Error', cls: 'badge no' },
+document.getElementById('btn-nueva-busqueda').addEventListener('click',()=>{
+  const marca=document.getElementById('f-marca').value.trim();
+  const modelo=document.getElementById('f-modelo').value.trim();
+  if(!marca||!modelo){showToast('Completá marca y modelo','error');return;}
+  const entry={
+    id:'b'+Date.now(),marca,modelo,
+    version:document.getElementById('f-version').value.trim(),
+    anioMin:parseInt(document.getElementById('f-anio-min').value)||null,
+    anioMax:parseInt(document.getElementById('f-anio-max').value)||null,
+    provincias:getSelectedProvincias(),
+    ciudad:document.getElementById('f-ciudad').value.trim(),
+    radioKm:parseInt(document.getElementById('f-radio-km').value)||null,
+    antiguedad:document.getElementById('f-antiguedad').value,
+    fecha:new Date().toISOString(),resultados:[]
+  };
+  DB.historial.unshift(entry);saveData(DB);
+  ['f-marca','f-version','f-anio-min','f-anio-max','f-ciudad','f-radio-km'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-modelo').value='';
+  document.getElementById('f-antiguedad').value='';
+  document.querySelectorAll('#f-provincias input:checked').forEach(i=>{i.checked=false;i.closest('.prov-chip').classList.remove('checked');});
+  renderAll();
+  showToast(`Búsqueda creada: ${marca} ${modelo}`,'success');
+});
+
+// ── ESTADO ──
+const ESTADO_LABEL={
+  pendiente:{text:'Pendiente',cls:'pill'},
+  buscando:{text:'Buscando...',cls:'badge badge-warn'},
+  analizando:{text:'Analizando...',cls:'badge badge-warn'},
+  completada:{text:'Completada',cls:'badge badge-profit'},
+  error:{text:'Error',cls:'badge badge-risk'},
 };
-
 function estadoPill(b){
-  if(!b.estado) return '';
-  const info = ESTADO_LABEL[b.estado] || { text: b.estado, cls: 'pill' };
-  const titleAttr = b.estadoMensaje ? ` title="${b.estadoMensaje.replace(/"/g,'&quot;')}"` : '';
-  return `<span class="${info.cls}"${titleAttr}>${info.text}</span>`;
+  if(!b.estado)return'';
+  const info=ESTADO_LABEL[b.estado]||{text:b.estado,cls:'pill'};
+  const t=b.estadoMensaje?` title="${b.estadoMensaje.replace(/"/g,'&quot;')}"`:' ';
+  return`<span class="${info.cls}"${t}>${info.text}</span>`;
 }
 
+// ── ULTIMA BUSQUEDA ──
 function renderUltimaBusqueda(){
-  const box = document.getElementById('ultima-busqueda-box');
-  if(!DB.historial.length){ box.innerHTML=''; return; }
-  const b = DB.historial[0];
-  const accionesManual = b.origen === 'extension'
-    ? `<div class="sub">${b.estadoMensaje || 'Búsqueda iniciada vía extensión.'}</div>`
-    : `<div class="sub">Creada ${new Date(b.fecha).toLocaleString('es-AR')}. Para completarla con datos reales, copiá el mensaje y pegalo en el chat con Claude:</div>
-       <div class="btn-row" style="margin-top:6px">
-         <button class="btn-secondary small-btn" onclick="copyClaudePrompt('${b.id}')">📋 Copiar mensaje para Claude</button>
-         <span class="pill">id: ${b.id}</span>
-       </div>`;
-  box.innerHTML = `<div class="card">
-    <div class="toolbar">
-      <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''} (${b.anioMin||'?'}–${b.anioMax||'?'})</strong>
-      <span class="pill">${b.resultados.length} resultados</span>
-      ${estadoPill(b)}
-      ${b.antiguedad ? `<span class="pill">🕐 ${ANTIGUEDAD_LABEL[b.antiguedad]}</span>` : ''}
+  const box=document.getElementById('ultima-busqueda-box');
+  if(!DB.historial.length){box.innerHTML='';return;}
+  const b=DB.historial[0];
+  const acciones=b.origen==='extension'
+    ?`<div style="font-size:12px;color:var(--text-2);margin-top:6px">${b.estadoMensaje||'Búsqueda iniciada vía extensión.'}</div>`
+    :`<div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-glass btn-sm" onclick="copyClaudePrompt('${b.id}')">📋 Copiar mensaje para Claude</button>
+        <span class="pill">id: ${b.id}</span>
+      </div>`;
+  box.innerHTML=`<div class="card" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+      <strong style="color:var(--text-1)">${b.marca} ${b.modelo}${b.version?' '+b.version:''} (${b.anioMin||'?'}–${b.anioMax||'?'})</strong>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill">${b.resultados.length} resultados</span>
+        ${estadoPill(b)}
+        ${b.antiguedad?`<span class="pill">${ANTIGUEDAD_LABEL[b.antiguedad]}</span>`:''}
+      </div>
     </div>
-    <div class="sub">📍 ${describeZona(b)}</div>
-    ${accionesManual}
+    <div style="font-size:12px;color:var(--text-3)">📍 ${describeZona(b)}</div>
+    ${acciones}
   </div>`;
 }
 
-// ---------- HISTORIAL ----------
+// ── HISTORIAL ──
 function renderHistorial(){
-  const cont = document.getElementById('historial-list');
+  const cont=document.getElementById('historial-list');
   if(!DB.historial.length){
-    cont.innerHTML = `<div class="card"><div class="empty"><div class="big">🕘</div>Todavía no hiciste ninguna búsqueda.</div></div>`;
+    cont.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🕘</div>Todavía no hiciste ninguna búsqueda.</div></div>`;
     return;
   }
-  cont.innerHTML = DB.historial.map(b=>{
-    const rows = b.resultados.map(r=>{
-      const rankLabel = r.esOportunidad
-        ? (r.score <= 3 ? `<span class="badge ok">#${r.score||'?'}</span>` : `<span class="pill">#${r.score||'?'}</span>`)
-        : '<span class="badge no">—</span>';
-      const pct = diffPct(r.precio, r.valorMercado);
-      const pctLabel = pct === null ? '<span class="sub">—</span>'
-        : pct >= 15 ? `<span class="badge ok">+${pct}% 🔥</span>`
-        : pct >= 10 ? `<span class="badge ok">+${pct}%</span>`
-        : pct > 0  ? `<span class="badge warn">+${pct}%</span>`
-        : `<span class="badge no">${pct}%</span>`;
-      return `<tr>
-        <td>${r.titulo}</td>
-        <td>${r.anio}</td>
+  cont.innerHTML=DB.historial.map(b=>{
+    const rows=b.resultados.map(r=>{
+      const pct=diffPct(r.precio,r.valorMercado);
+      const pctLabel=pct===null?'<span style="color:var(--text-3)">—</span>'
+        :pct>=15?`<span class="badge badge-profit">+${pct}%</span>`
+        :pct>=10?`<span class="badge badge-profit">+${pct}%</span>`
+        :pct>0?`<span class="badge badge-warn">+${pct}%</span>`
+        :`<span class="badge badge-risk">${pct}%</span>`;
+      const rankLabel=r.esOportunidad
+        ?`<span class="badge badge-profit">✓</span>`
+        :`<span style="color:var(--text-3)">—</span>`;
+      return`<tr>
+        <td>${r.titulo}</td><td>${r.anio||'—'}</td>
         <td>${r.km?.toLocaleString('es-AR')||'—'} km</td>
-        <td><strong>${fmtMoney(r.precio, 'USD')}</strong></td>
-        <td>${r.valorMercado ? fmtMoney(r.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
-        <td>${pctLabel}</td>
-        <td>${rankLabel}</td>
+        <td style="font-weight:600">${fmtMoney(r.precio,'USD')}</td>
+        <td>${r.valorMercado?fmtMoney(r.valorMercado,'USD'):'—'}</td>
+        <td>${pctLabel}</td><td>${rankLabel}</td>
         <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
       </tr>`;
     }).join('');
-    return `<div class="card">
-      <div class="toolbar">
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <div>
-          <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''}</strong> <span class="pill">${b.anioMin||'?'}–${b.anioMax||'?'}</span> <span class="pill">📍 ${describeZona(b)}</span> ${b.antiguedad?`<span class="pill">🕐 ${ANTIGUEDAD_LABEL[b.antiguedad]}</span>`:''} ${estadoPill(b)}
-          <div class="sub" style="margin:4px 0 0">${new Date(b.fecha).toLocaleString('es-AR')} · ${b.resultados.length} resultados · id: ${b.id}</div>
+          <div style="font-weight:700;color:var(--text-1)">${b.marca} ${b.modelo}${b.version?' '+b.version:''} <span class="pill">${b.anioMin||'?'}–${b.anioMax||'?'}</span></div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:3px">${new Date(b.fecha).toLocaleString('es-AR')} · ${b.resultados.length} resultados · ${describeZona(b)}</div>
         </div>
-        <div class="row-actions">
-          ${b.origen === 'extension' ? '' : `<button class="btn-secondary small-btn" onclick="copyClaudePrompt('${b.id}')">📋 Re-ejecutar con Claude</button>`}
-          <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          ${estadoPill(b)}
+          ${b.origen!=='extension'?`<button class="btn btn-glass btn-sm" onclick="copyClaudePrompt('${b.id}')">Re-ejecutar</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
         </div>
       </div>
-      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Oportunidad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+      ${b.resultados.length?`<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD</th><th>Mercado</th><th>% Reboleo</th><th>Oportunidad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div style="font-size:13px;color:var(--text-3)">Sin resultados cargados.</div>'}
     </div>`;
   }).join('');
 }
 
-function publicadoLabel(dias){
-  if(dias === undefined || dias === null) return '<span class="sub">—</span>';
-  if(dias <= 0) return '<span class="badge ok">Hoy</span>';
-  if(dias <= 7) return `<span class="badge warn">${dias}d (semana)</span>`;
-  if(dias <= 30) return `<span class="pill">${dias}d (mes)</span>`;
-  return `<span class="sub">${dias}d</span>`;
-}
+function confirmDeleteBusqueda(id){pendingDelete={type:'busqueda',id};document.getElementById('modal-bg').classList.add('open');}
 
-function scoreDots(pct){
-  if(pct === null || pct === undefined) return '<span class="sub">—</span>';
-  const filled = pct >= 20 ? 5 : pct >= 15 ? 4 : pct >= 12 ? 3 : pct >= 8 ? 2 : pct >= 5 ? 1 : 0;
-  const isWarn = pct >= 5 && pct < 10;
-  const dots = Array.from({length:5}, (_,i)=>
-    `<span class="score-dot${i<filled?' on'+(isWarn?' warn':''):''}"></span>`
-  ).join('');
-  const valColor = pct >= 12 ? 'var(--profit)' : pct >= 5 ? 'var(--warn)' : 'var(--risk)';
-  return `<div class="score-bar"><div class="score-dots">${dots}</div><span class="score-val" style="color:${valColor}">${pct>0?'+':''}${pct}%</span></div>`;
-}
-
-function renderSidebarPanel(){
-  const panel = document.getElementById('sidebar-panel');
-  if(!panel) return;
-  const recientes = DB.historial.slice(0, 3);
-  const hoy = new Date().toDateString();
-  const busquedasHoy = DB.historial.filter(b=> new Date(b.fecha).toDateString()===hoy).length;
-  const opHoy = DB.historial
-    .filter(b=> new Date(b.fecha).toDateString()===hoy)
-    .reduce((acc,b)=> acc + b.resultados.filter(r=>r.esOportunidad).length, 0);
-  const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
-  const maxDiff = diffs.length ? Math.max(...diffs) : null;
-
-  const statusColor = {
-    completada: 'var(--profit)', buscando: 'var(--warn)',
-    analizando: 'var(--warn)', error: 'var(--risk)', pendiente: 'var(--text-3)',
-  };
-  const recentHTML = recientes.length
-    ? recientes.map(b=>{
-        const nOp = b.resultados.filter(r=>r.esOportunidad).length;
-        const dotColor = statusColor[b.estado] || 'var(--text-3)';
-        return `<div class="sidebar-recent-item" onclick="showView('historial')">
-          <span class="sidebar-recent-dot" style="background:${dotColor}"></span>
-          <span class="sidebar-recent-name">${b.marca} ${b.modelo}</span>
-          ${nOp>0?`<span class="sidebar-recent-badge">${nOp}↑</span>`:''}
-        </div>`;
-      }).join('')
-    : `<div style="padding:5px 10px;font-size:11px;color:var(--text-3)">Sin búsquedas</div>`;
-
-  panel.innerHTML = `
-    <div class="sidebar-panel-title">Recientes</div>
-    ${recentHTML}
-    <div class="sidebar-mini-stats">
-      <div class="sidebar-mini-stat">
-        <div class="val">${busquedasHoy}</div>
-        <div class="lbl">Búsquedas hoy</div>
-      </div>
-      <div class="sidebar-mini-stat">
-        <div class="val" style="color:var(--profit)">${opHoy}</div>
-        <div class="lbl">Oport. hoy</div>
-      </div>
-    </div>
-    ${maxDiff!==null?`<div class="sidebar-best-margin">Mejor reboleo: <strong style="color:var(--profit)">+${maxDiff}%</strong></div>`:''}
-  `;
-}
-
-function confirmDeleteBusqueda(id){
-  pendingDelete = { type:'busqueda', id };
-  document.getElementById('modal-bg').classList.add('open');
-}
-
-// ---------- OPORTUNIDADES ----------
+// ── OPORTUNIDADES ──
 function allOportunidades(){
-  const out = [];
-  DB.historial.forEach(b=>{
-    b.resultados.forEach(r=>{
-      if(r.esOportunidad) out.push({...r, marca:b.marca, modelo:b.modelo, busquedaId:b.id});
-    });
-  });
+  const out=[];
+  DB.historial.forEach(b=>b.resultados.forEach(r=>{
+    if(r.esOportunidad)out.push({...r,marca:b.marca,modelo:b.modelo,busquedaId:b.id});
+  }));
   return out;
 }
 
-function diasDentroDe(dias, rango){
-  if(dias === undefined || dias === null) return false;
-  if(rango === 'hoy') return dias <= 0;
-  if(rango === 'semana') return dias <= 7;
-  if(rango === 'mes') return dias <= 30;
+function diasDentroDe(dias,rango){
+  if(dias===undefined||dias===null)return false;
+  if(rango==='hoy')return dias<=0;
+  if(rango==='semana')return dias<=7;
+  if(rango==='mes')return dias<=30;
   return true;
 }
 
 function renderOportunidades(){
-  const filterVal = (document.getElementById('oport-filter')?.value || '').toLowerCase();
-  const antiguedadVal = document.getElementById('oport-antiguedad-filter')?.value || '';
-  const ops = allOportunidades().filter(o =>
-    (!filterVal || (o.marca+' '+o.modelo).toLowerCase().includes(filterVal)) &&
-    (!antiguedadVal || diasDentroDe(o.diasPublicado, antiguedadVal))
+  const filterVal=(document.getElementById('oport-filter')?.value||'').toLowerCase();
+  const antigVal=document.getElementById('oport-antiguedad-filter')?.value||'';
+  const ops=allOportunidades().filter(o=>
+    (!filterVal||(o.marca+' '+o.modelo+' '+o.titulo).toLowerCase().includes(filterVal))&&
+    (!antigVal||diasDentroDe(o.diasPublicado,antigVal))
   );
-  const tbody = document.getElementById('oport-tbody');
-  const empty = document.getElementById('oport-empty');
-  document.getElementById('oport-count-pill').textContent = ops.length + ' resultado(s)';
+  const tbody=document.getElementById('oport-tbody');
+  const empty=document.getElementById('oport-empty');
+  const pill=document.getElementById('oport-count-pill');
+  if(pill)pill.textContent=ops.length+' resultado(s)';
 
-  const totalBusquedas = DB.historial.length;
-  const totalResultados = DB.historial.reduce((a,b)=>a+b.resultados.length,0);
-  const totalTop10 = allOportunidades().length;
-  const precioMin = (()=>{
-    const precios = allOportunidades().map(o=>o.precio).filter(x=>x!=null);
-    if(!precios.length) return '—';
-    return fmtMoney(Math.min(...precios), 'USD');
-  })();
-  const avgDiff = (()=>{
-    const diffs = allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
-    if(!diffs.length) return '—';
-    return '+' + Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length) + '%';
-  })();
-  document.getElementById('oport-stats').innerHTML = `
-    <div class="stat glass"><div class="v">${totalBusquedas}</div><div class="l">Búsquedas realizadas</div></div>
-    <div class="stat glass"><div class="v">${totalResultados}</div><div class="l">Publicaciones analizadas</div></div>
-    <div class="stat glass"><div class="v" style="color:var(--success)">${totalTop10}</div><div class="l">Oportunidades</div></div>
-    <div class="stat glass"><div class="v">${precioMin}</div><div class="l">Precio más bajo encontrado</div></div>
-    <div class="stat glass"><div class="v" style="color:var(--success)">${avgDiff}</div><div class="l">Reboleo promedio vs. mercado</div></div>
+  const allOps=allOportunidades();
+  const totalPubs=DB.historial.reduce((a,b)=>a+b.resultados.length,0);
+  const diffs=allOps.map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+  const avgDiff=diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length):null;
+  const minPrecio=allOps.map(o=>o.precio).filter(x=>x!=null);
+
+  document.getElementById('oport-stats').innerHTML=`
+    <div class="stat-card glass"><div class="stat-label">Búsquedas</div><div class="stat-value">${DB.historial.length}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Publicaciones</div><div class="stat-value">${totalPubs}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Oportunidades</div><div class="stat-value" style="color:var(--profit)">${allOps.length}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Margen promedio</div><div class="stat-value" style="color:var(--profit)">${avgDiff!==null?'+'+avgDiff+'%':'—'}</div></div>
   `;
 
-  if(!ops.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-  tbody.innerHTML = ops.map(o=>{
-    const pct = diffPct(o.precio, o.valorMercado);
-    const pctBadge = pct === null ? '<span class="sub">—</span>'
-      : pct >= 15 ? `<span class="badge ok">+${pct}% 🔥</span>`
-      : pct >= 10 ? `<span class="badge ok">+${pct}%</span>`
-      : pct > 0  ? `<span class="badge warn">+${pct}%</span>`
-      : `<span class="badge no">${pct}%</span>`;
-    return `<tr>
+  if(!ops.length){if(tbody)tbody.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+  tbody.innerHTML=ops.map(o=>{
+    const pct=diffPct(o.precio,o.valorMercado);
+    const pctBadge=pct===null?'—'
+      :pct>=15?`<span class="badge badge-profit">+${pct}%</span>`
+      :pct>=10?`<span class="badge badge-profit">+${pct}%</span>`
+      :pct>0?`<span class="badge badge-warn">+${pct}%</span>`
+      :`<span class="badge badge-risk">${pct}%</span>`;
+    return`<tr>
       <td>${scoreDots(pct)}</td>
-      <td><strong>${o.marca} ${o.modelo}</strong><div class="sub" style="margin:2px 0 0">${o.titulo}</div>${o.riesgos?`<div class="sub" style="margin:2px 0 0;color:var(--warning)">⚠ ${o.riesgos}</div>`:''}</td>
+      <td><div style="font-weight:600;color:var(--text-1)">${o.marca} ${o.modelo}</div><div style="font-size:11px;color:var(--text-3)">${o.titulo}</div>${o.riesgos?`<div style="font-size:11px;color:var(--warn);margin-top:2px">⚠ ${o.riesgos}</div>`:''}</td>
       <td>${o.anio||'—'}</td>
       <td>${o.km?.toLocaleString('es-AR')||'—'}</td>
-      <td><strong>${fmtMoney(o.precio,'USD')}</strong></td>
-      <td>${o.valorMercado ? fmtMoney(o.valorMercado,'USD') : '<span class="sub">—</span>'}</td>
+      <td style="font-weight:600;color:var(--info)">${fmtMoney(o.precio,'USD')}</td>
+      <td>${o.valorMercado?fmtMoney(o.valorMercado,'USD'):'—'}</td>
       <td>${pctBadge}</td>
-      <td>${o.ubicacion||'—'}</td>
+      <td style="font-size:12px">${o.ubicacion||'—'}</td>
       <td>${o.link?`<a class="link" href="${o.link}" target="_blank">Ver →</a>`:''}</td>
     </tr>`;
   }).join('');
 }
-document.getElementById('oport-filter')?.addEventListener('input', renderOportunidades);
-document.getElementById('oport-antiguedad-filter')?.addEventListener('change', renderOportunidades);
+document.getElementById('oport-filter')?.addEventListener('input',renderOportunidades);
+document.getElementById('oport-antiguedad-filter')?.addEventListener('change',renderOportunidades);
 
-// ---------- ALERTAS ----------
-document.getElementById('btn-nueva-alerta').addEventListener('click', ()=>{
-  const marca = document.getElementById('a-marca').value.trim();
-  const modelo = document.getElementById('a-modelo').value.trim();
-  const anioMin = parseInt(document.getElementById('a-anio-min').value) || null;
-  const kmMax = parseInt(document.getElementById('a-km-max').value) || null;
-  const descMin = parseInt(document.getElementById('a-desc-min').value) || 10;
-  if(!marca || !modelo){ showToast('Completá marca y modelo', 'error'); return; }
-  DB.alertas.unshift({ id:'al'+Date.now(), marca, modelo, anioMin, kmMax, descMin, activa:true });
+// ── DASHBOARD ──
+function renderDashboard(){
+  const allOps=allOportunidades();
+  const totalPubs=DB.historial.reduce((a,b)=>a+b.resultados.length,0);
+  const diffs=allOps.map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+  const maxDiff=diffs.length?Math.max(...diffs):null;
+
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card glass"><div class="stat-label">Publicaciones analizadas</div><div class="stat-value">${totalPubs}</div><div class="stat-delta up">${DB.historial.length} búsqueda(s)</div></div>
+    <div class="stat-card glass"><div class="stat-label">Oportunidades</div><div class="stat-value" style="color:var(--profit)">${allOps.length}</div><div class="stat-delta up">${allOps.length>0?'Disponibles':'Sin oportunidades'}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Mejor margen</div><div class="stat-value" style="color:var(--profit)">${maxDiff!==null?'+'+maxDiff+'%':'—'}</div></div>
+    <div class="stat-card glass"><div class="stat-label">Alertas activas</div><div class="stat-value" style="color:var(--warn)">${DB.alertas.length}</div></div>
+  `;
+
+  const dashEmpty=document.getElementById('dash-empty');
+  const dashOpps=document.getElementById('dash-opps');
+  const recent=allOps.slice(0,6);
+  if(!recent.length){
+    dashOpps.innerHTML='';
+    if(dashEmpty)dashEmpty.style.display='block';
+    return;
+  }
+  if(dashEmpty)dashEmpty.style.display='none';
+  dashOpps.innerHTML=recent.map(o=>{
+    const pct=diffPct(o.precio,o.valorMercado);
+    const badge=pct>=15?`<span class="badge badge-profit">+${pct}%</span>`
+      :pct>=10?`<span class="badge badge-profit">+${pct}%</span>`
+      :pct>0?`<span class="badge badge-warn">+${pct}%</span>`
+      :`<span class="badge badge-risk">${pct}%</span>`;
+    return`<div class="opp-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+        <div class="opp-title">${o.marca} ${o.modelo}</div>
+        ${pct!==null?badge:''}
+      </div>
+      <div class="opp-meta"><span>${o.anio||'—'}</span><span>${o.km?.toLocaleString('es-AR')||'—'} km</span><span>📍 ${o.ubicacion||'—'}</span></div>
+      <div class="opp-prices">
+        <div class="opp-price-col"><div class="opp-price-label">Precio</div><div class="opp-price-val" style="color:var(--info)">${fmtMoney(o.precio,'USD')}</div></div>
+        <div style="font-size:16px;color:var(--profit);align-self:center">→</div>
+        <div class="opp-price-col" style="text-align:right"><div class="opp-price-label">Mercado</div><div class="opp-price-val" style="color:var(--profit)">${fmtMoney(o.valorMercado,'USD')}</div></div>
+      </div>
+      ${o.link?`<a class="link" href="${o.link}" target="_blank">Ver publicación →</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── RIGHT PANEL ──
+function renderRightPanel(){
+  // Actividad reciente
+  const act=document.getElementById('panel-actividad');
+  if(act){
+    const statusColor={completada:'var(--profit)',buscando:'var(--warn)',analizando:'var(--warn)',error:'var(--risk)',pendiente:'var(--text-3)'};
+    const recientes=DB.historial.slice(0,5);
+    if(recientes.length){
+      act.innerHTML=recientes.map(b=>{
+        const color=statusColor[b.estado]||'var(--text-3)';
+        const nOp=b.resultados.filter(r=>r.esOportunidad).length;
+        const t=new Date(b.fecha);
+        const diff=Math.round((Date.now()-t)/60000);
+        const timeStr=diff<60?`Hace ${diff} min`:diff<1440?`Hace ${Math.round(diff/60)}h`:`${t.toLocaleDateString('es-AR')}`;
+        return`<div class="alert-item">
+          <div class="alert-dot" style="background:${color}"></div>
+          <div>
+            <div class="alert-text">${b.marca} ${b.modelo}${nOp>0?` — ${nOp} oport.`:''}</div>
+            <div class="alert-time">${timeStr}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }else{
+      act.innerHTML='<div class="alert-item"><div class="alert-dot" style="background:var(--text-3)"></div><div><div class="alert-text" style="color:var(--text-3)">Sin actividad todavía</div></div></div>';
+    }
+  }
+
+  // Resumen del día
+  const hoy=new Date().toDateString();
+  const busquedasHoy=DB.historial.filter(b=>new Date(b.fecha).toDateString()===hoy).length;
+  const opHoy=DB.historial.filter(b=>new Date(b.fecha).toDateString()===hoy).reduce((a,b)=>a+b.resultados.filter(r=>r.esOportunidad).length,0);
+  const totalPubs=DB.historial.filter(b=>new Date(b.fecha).toDateString()===hoy).reduce((a,b)=>a+b.resultados.length,0);
+  const diffs=allOportunidades().map(o=>diffPct(o.precio,o.valorMercado)).filter(x=>x!==null);
+  const maxDiff=diffs.length?Math.max(...diffs):null;
+  const el=id=>document.getElementById(id);
+  if(el('pr-busquedas'))el('pr-busquedas').textContent=busquedasHoy;
+  if(el('pr-oport'))el('pr-oport').textContent=opHoy;
+  if(el('pr-margen'))el('pr-margen').textContent=maxDiff!==null?'+'+maxDiff+'%':'—';
+  if(el('pr-pubs'))el('pr-pubs').textContent=totalPubs;
+
+  // Top marcas
+  const marcasEl=document.getElementById('panel-marcas');
+  if(marcasEl){
+    const counts={};
+    DB.historial.forEach(b=>b.resultados.forEach(r=>{
+      if(r.esOportunidad)counts[b.marca]=(counts[b.marca]||0)+1;
+    }));
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const max=sorted[0]?.[1]||1;
+    if(sorted.length){
+      marcasEl.innerHTML=sorted.map(([marca,n])=>`
+        <div class="chart-bar-item">
+          <div class="chart-bar-label"><span>${marca}</span><span style="color:var(--profit)">${n}</span></div>
+          <div class="chart-bar-track"><div class="chart-bar-fill green" style="width:${Math.round(n/max*100)}%"></div></div>
+        </div>`).join('');
+    }else{
+      marcasEl.innerHTML='<div style="font-size:12px;color:var(--text-3)">Sin datos todavía</div>';
+    }
+  }
+}
+
+// ── ALERTAS ──
+document.getElementById('btn-nueva-alerta').addEventListener('click',()=>{
+  const marca=document.getElementById('a-marca').value.trim();
+  const modelo=document.getElementById('a-modelo').value.trim();
+  if(!marca||!modelo){showToast('Completá marca y modelo','error');return;}
+  DB.alertas.unshift({id:'al'+Date.now(),marca,modelo,
+    anioMin:parseInt(document.getElementById('a-anio-min').value)||null,
+    kmMax:parseInt(document.getElementById('a-km-max').value)||null,
+    descMin:parseInt(document.getElementById('a-desc-min').value)||10,
+    activa:true});
   saveData(DB);
   ['a-marca','a-modelo','a-anio-min','a-km-max','a-desc-min'].forEach(id=>document.getElementById(id).value='');
   renderAll();
-  showToast(`Alerta creada: ${marca} ${modelo}`, 'success');
+  showToast(`Alerta creada: ${marca} ${modelo}`,'success');
 });
 
 function alertaCumplida(alerta){
-  let matches = 0;
+  let matches=0;
   DB.historial.forEach(b=>{
-    if(b.marca.toLowerCase() !== alerta.marca.toLowerCase()) return;
-    if(b.modelo.toLowerCase() !== alerta.modelo.toLowerCase()) return;
+    if(b.marca.toLowerCase()!==alerta.marca.toLowerCase())return;
+    if(b.modelo.toLowerCase()!==alerta.modelo.toLowerCase())return;
     b.resultados.forEach(r=>{
-      const pct = diffPct(r.precio, r.valorMercado);
-      if(alerta.anioMin && r.anio < alerta.anioMin) return;
-      if(alerta.kmMax && r.km > alerta.kmMax) return;
-      if(pct === null || pct < alerta.descMin) return;
+      const pct=diffPct(r.precio,r.valorMercado);
+      if(alerta.anioMin&&r.anio<alerta.anioMin)return;
+      if(alerta.kmMax&&r.km>alerta.kmMax)return;
+      if(pct===null||pct<alerta.descMin)return;
       matches++;
     });
   });
@@ -1488,104 +1363,71 @@ function alertaCumplida(alerta){
 }
 
 function renderAlertas(){
-  const tbody = document.getElementById('alertas-tbody');
-  const empty = document.getElementById('alertas-empty');
-  if(!DB.alertas.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  const tbody=document.getElementById('alertas-tbody');
+  const empty=document.getElementById('alertas-empty');
+  if(!DB.alertas.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
-  tbody.innerHTML = DB.alertas.map(a=>{
-    const matches = alertaCumplida(a);
-    return `<tr>
-      <td><strong>${a.marca} ${a.modelo}</strong></td>
+  tbody.innerHTML=DB.alertas.map(a=>{
+    const m=alertaCumplida(a);
+    return`<tr>
+      <td style="font-weight:600">${a.marca} ${a.modelo}</td>
       <td>${a.anioMin||'—'}</td>
       <td>${a.kmMax?a.kmMax.toLocaleString('es-AR'):'—'}</td>
       <td>${a.descMin}%</td>
-      <td>${matches>0?`<span class="badge ok">${matches} match(es)</span>`:'<span class="badge warn">Sin matches</span>'}</td>
-      <td><button class="btn-danger small-btn" onclick="confirmDeleteAlerta('${a.id}')">Eliminar</button></td>
+      <td>${m>0?`<span class="badge badge-profit">${m} match(es)</span>`:'<span class="badge badge-warn">Sin matches</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="confirmDeleteAlerta('${a.id}')">Eliminar</button></td>
     </tr>`;
   }).join('');
 }
-function confirmDeleteAlerta(id){
-  pendingDelete = { type:'alerta', id };
-  document.getElementById('modal-bg').classList.add('open');
-}
+function confirmDeleteAlerta(id){pendingDelete={type:'alerta',id};document.getElementById('modal-bg').classList.add('open');}
 
-document.getElementById('modal-confirm').addEventListener('click', ()=>{
+document.getElementById('modal-confirm').addEventListener('click',()=>{
   if(pendingDelete){
-    if(pendingDelete.type==='busqueda') DB.historial = DB.historial.filter(b=>b.id!==pendingDelete.id);
-    if(pendingDelete.type==='alerta') DB.alertas = DB.alertas.filter(a=>a.id!==pendingDelete.id);
-    saveData(DB);
-    pendingDelete = null;
-    showToast('Eliminado correctamente', 'success');
+    if(pendingDelete.type==='busqueda')DB.historial=DB.historial.filter(b=>b.id!==pendingDelete.id);
+    if(pendingDelete.type==='alerta')DB.alertas=DB.alertas.filter(a=>a.id!==pendingDelete.id);
+    saveData(DB);pendingDelete=null;showToast('Eliminado correctamente','success');
   }
-  document.getElementById('modal-bg').classList.remove('open');
-  renderAll();
+  document.getElementById('modal-bg').classList.remove('open');renderAll();
 });
-document.getElementById('modal-cancel').addEventListener('click', ()=>{
-  pendingDelete = null;
-  document.getElementById('modal-bg').classList.remove('open');
+document.getElementById('modal-cancel').addEventListener('click',()=>{
+  pendingDelete=null;document.getElementById('modal-bg').classList.remove('open');
 });
 
-// ---------- IMPORTAR ----------
-document.getElementById('btn-importar').addEventListener('click', ()=>{
-  const status = document.getElementById('import-status');
+// ── IMPORTAR ──
+document.getElementById('btn-importar').addEventListener('click',()=>{
+  const status=document.getElementById('import-status');
   let data;
-  try{
-    data = JSON.parse(document.getElementById('import-json').value);
-  }catch(e){
-    status.style.color = 'var(--danger)';
-    status.textContent = 'JSON inválido: ' + e.message;
-    showToast('JSON inválido', 'error');
-    return;
-  }
-  const entry = {
-    id: data.id || ('b'+Date.now()),
-    marca: data.marca,
-    modelo: data.modelo,
-    anioMin: data.anioMin,
-    anioMax: data.anioMax,
-    fecha: new Date().toISOString(),
-    resultados: data.resultados || []
-  };
-  const idx = DB.historial.findIndex(b=>b.id===entry.id);
-  if(idx>=0) DB.historial[idx] = entry;
-  else DB.historial.unshift(entry);
+  try{data=JSON.parse(document.getElementById('import-json').value);}
+  catch(e){status.style.color='var(--risk)';status.textContent='JSON inválido: '+e.message;showToast('JSON inválido','error');return;}
+  const entry={id:data.id||('b'+Date.now()),marca:data.marca,modelo:data.modelo,anioMin:data.anioMin,anioMax:data.anioMax,fecha:new Date().toISOString(),resultados:data.resultados||[]};
+  const idx=DB.historial.findIndex(b=>b.id===entry.id);
+  if(idx>=0)DB.historial[idx]=entry;else DB.historial.unshift(entry);
   saveData(DB);
-  status.style.color = 'var(--success)';
-  status.textContent = `Importado correctamente: ${entry.resultados.length} resultados para ${entry.marca} ${entry.modelo}.`;
-  renderAll();
-  showToast(`Importado: ${entry.resultados.length} resultados`, 'success');
+  status.style.color='var(--profit)';
+  status.textContent=`Importado: ${entry.resultados.length} resultados para ${entry.marca} ${entry.modelo}.`;
+  renderAll();showToast(`Importado: ${entry.resultados.length} resultados`,'success');
+});
+document.getElementById('btn-ejemplo').addEventListener('click',()=>{
+  const ej={marca:"Peugeot",modelo:"208",anioMin:2022,anioMax:2024,resultados:[
+    {titulo:"208 1.6 Feline Automático",anio:2022,km:6000,precio:15800,moneda:"USD",ubicacion:"Buenos Aires",link:"https://auto.mercadolibre.com.ar/MLA-1799124153",valorMercado:18800,esOportunidad:true,motivo:"Precio 16% bajo mercado",riesgos:""},
+    {titulo:"208 1.0 T200 GT CVT",anio:2024,km:14000,precio:24000,moneda:"USD",ubicacion:"Mar del Plata",link:"https://auto.mercadolibre.com.ar/MLA-3323446644",valorMercado:21000,esOportunidad:false,motivo:"",riesgos:""},
+  ]};
+  document.getElementById('import-json').value=JSON.stringify(ej,null,2);
 });
 
-document.getElementById('btn-ejemplo').addEventListener('click', ()=>{
-  const ejemplo = {
-    marca:"Peugeot", modelo:"208", anioMin:2022, anioMax:2024,
-    resultados: [
-      {titulo:"208 1.0 T200 GT CVT", anio:2024, km:14000, precio:24000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3323446644-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:21000, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.6 Active Tiptronic", anio:2022, km:49000, precio:16990, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1831325953-peugeot-208-16-active-tiptronic-_JM", valorMercado:18000, esOportunidad:false, motivo:"", riesgos:"Precio justificado por mayor km y versión de menor equipamiento"},
-      {titulo:"208 1.6 Feline Automático", anio:2022, km:6000, precio:18815, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1799124153-peugeot-208-16-feline-automatico-_JM", valorMercado:18800, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.0 T200 GT CVT", anio:2024, km:22000, precio:20000, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-1839304013-peugeot-208-10-t200-gt-cvt-_JM", valorMercado:20500, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.6 Active Pack", anio:2023, km:19000, precio:18500, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3289180450-peugeot-208-16-active-pack-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.6 Active Pack Tiptronic", anio:2024, km:29897, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3152830582-peugeot-208-16-active-pack-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.6 Feline Tiptronic", anio:2022, km:37000, precio:18119, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3112220034-peugeot-208-16-feline-tiptronic-_JM", valorMercado:18200, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 1.6 Style Tiptronic", anio:2023, km:36000, precio:18467, moneda:"USD", ubicacion:"Mar del Plata", link:"https://auto.mercadolibre.com.ar/MLA-3410941708-peugeot-208-16-style-tiptronic-_JM", valorMercado:18500, esOportunidad:false, motivo:"", riesgos:""},
-      {titulo:"208 Style At", anio:2023, km:23000, precio:18500, moneda:"USD", ubicacion:"Buenos Aires", link:"https://auto.mercadolibre.com.ar/MLA-1831467409-peugeot-208-2023-_JM", valorMercado:18600, esOportunidad:false, motivo:"", riesgos:""}
-    ]
-  };
-  document.getElementById('import-json').value = JSON.stringify(ejemplo, null, 2);
-});
-
-// ---------- RENDER ALL ----------
+// ── RENDER ALL ──
 function renderAll(){
-  document.getElementById('cnt-historial').textContent = DB.historial.length || '';
-  document.getElementById('cnt-oport').textContent = allOportunidades().length || '';
-  document.getElementById('cnt-alertas').textContent = DB.alertas.length || '';
+  document.getElementById('cnt-historial').textContent=DB.historial.length||'';
+  document.getElementById('cnt-oport').textContent=allOportunidades().length||'';
+  document.getElementById('cnt-alertas').textContent=DB.alertas.length||'';
   renderUltimaBusqueda();
+  renderDashboard();
   renderHistorial();
   renderOportunidades();
   renderAlertas();
-  renderSidebarPanel();
+  renderRightPanel();
 }
-renderAll();
+showView('dashboard');
 </script>
 </body>
 </html>
