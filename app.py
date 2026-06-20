@@ -110,6 +110,28 @@ def build_meli_url(params):
     return "/".join(parts)
 
 
+def build_meli_complementary_url(params):
+    """URL de búsqueda por texto en listado.mercadolibre.com.ar.
+    Solo se genera cuando el año es exacto (anioMin == anioMax).
+    Captura publicaciones de vendedores que no usaron los filtros de MELI correctamente.
+    """
+    anio_min = params.get("anioMin")
+    anio_max = params.get("anioMax")
+    if not (anio_min and anio_max and int(anio_min) == int(anio_max)):
+        return None
+
+    marca = slugify(params.get("marca"))
+    modelo = slugify(params.get("modelo"))
+    version = slugify(params.get("version") or "")
+
+    slug = f"{marca}-{modelo}"
+    if version:
+        slug += f"-{version}"
+    slug += f"-{anio_min}"
+
+    return f"https://listado.mercadolibre.com.ar/{slug}"
+
+
 @app.get("/")
 def health():
     return jsonify(status="ok", service="gonzalito-backend")
@@ -134,8 +156,9 @@ def create_search():
 
     search_id = "s" + uuid.uuid4().hex[:12]
     meli_url = build_meli_url(params)
+    meli_url_alt = build_meli_complementary_url(params)
     storage.create_search(search_id, params, meli_url)
-    return jsonify(searchId=search_id, meliUrl=meli_url, status="pendiente")
+    return jsonify(searchId=search_id, meliUrl=meli_url, meliUrlAlt=meli_url_alt, status="pendiente")
 
 
 @app.post("/api/searches/<search_id>/status")
