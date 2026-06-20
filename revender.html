@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Revender</title>
 <script>
-  // Set theme before first paint to avoid a flash of the wrong theme.
   (function(){
     var saved = localStorage.getItem('gonzalito_theme');
     var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -14,299 +13,610 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --text:#1A1B23; --muted:#6B6F80; --accent:#6C5CE7; --accent2:#00C2FF; --accent-text:#FFFFFF;
-    --success:#22C55E; --warning:#F5A623; --danger:#F0506E;
-    --radius:20px; --radius-sm:14px; --radius-pill:999px;
-    --glass-bg:rgba(255,255,255,.55); --glass-bg-strong:rgba(255,255,255,.72);
-    --glass-border:rgba(255,255,255,.6); --glass-border-soft:rgba(255,255,255,.35);
-    --surface2:rgba(255,255,255,.35); --border:rgba(120,120,140,.18);
-    --shadow-sm:0 4px 16px rgba(80,70,150,.08);
-    --shadow-md:0 10px 30px rgba(80,70,150,.12);
-    --shadow-lg:0 20px 60px rgba(40,30,90,.20);
-    --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    --mesh-1:#FFD6E8; --mesh-2:#C9E4FF; --mesh-3:#E0D4FF; --mesh-4:#D2FFEA; --page-bg:#EEF1FA;
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --primary: #6366f1;
+  --primary-end: #8b5cf6;
+  --profit: #34d399;
+  --info: #60a5fa;
+  --warn: #fbbf24;
+  --risk: #f87171;
+
+  --bg: #0a0a0f;
+  --bg-grad:
+    radial-gradient(ellipse 80% 60% at 20% 10%, #1a1040 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, #0c1f3a 0%, transparent 60%),
+    linear-gradient(135deg, #0d0d1a 0%, #0f1729 40%, #12102b 70%, #0a1520 100%);
+  --glass-bg: rgba(255,255,255,0.055);
+  --glass-bg-strong: rgba(255,255,255,0.09);
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-border-subtle: rgba(255,255,255,0.05);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+  --frame-bg: rgba(8,10,20,0.88);
+  --sidebar-bg: rgba(255,255,255,0.015);
+  --text-1: rgba(255,255,255,0.95);
+  --text-2: rgba(255,255,255,0.65);
+  --text-3: rgba(255,255,255,0.38);
+  --divider: rgba(255,255,255,0.06);
+  --hover-bg: rgba(255,255,255,0.05);
+  --active-bg: rgba(99,102,241,0.18);
+  --tag-bg: rgba(255,255,255,0.07);
+  --input-bg: rgba(0,0,0,0.25);
+  --badge-profit: rgba(52,211,153,0.15);
+  --badge-risk: rgba(248,113,113,0.15);
+  --badge-warn: rgba(251,191,36,0.12);
+  --badge-info: rgba(96,165,250,0.12);
+  --scrollbar: rgba(255,255,255,0.12);
+  --orb1: #3b28cc; --orb2: #0ea5e9; --orb3: #7c3aed; --orb4: #059669;
+
+  /* Aliases para compatibilidad con JS que usa inline style="color:var(--success)" etc */
+  --success: var(--profit);
+  --danger: var(--risk);
+  --warning: var(--warn);
+  --accent: var(--primary);
+  --muted: var(--text-2);
+  --text: var(--text-1);
+  --surface2: var(--glass-bg);
+  --border: var(--glass-border);
+  --accent-text: #fff;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="light"] {
+  --bg: #f0f0f8;
+  --bg-grad:
+    radial-gradient(ellipse 80% 60% at 20% 10%, #ddd8f8 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, #d0e4f8 0%, transparent 60%),
+    linear-gradient(135deg, #ebebf7 0%, #e8eef8 40%, #ece8f8 70%, #e4eff8 100%);
+  --glass-bg: rgba(255,255,255,0.62);
+  --glass-bg-strong: rgba(255,255,255,0.85);
+  --glass-border: rgba(0,0,0,0.08);
+  --glass-border-subtle: rgba(0,0,0,0.05);
+  --glass-shadow: 0 4px 24px rgba(80,60,160,0.10), inset 0 1px 0 rgba(255,255,255,0.9);
+  --frame-bg: rgba(240,240,248,0.92);
+  --sidebar-bg: rgba(255,255,255,0.45);
+  --text-1: rgba(12,10,30,0.92);
+  --text-2: rgba(12,10,30,0.58);
+  --text-3: rgba(12,10,30,0.35);
+  --divider: rgba(0,0,0,0.07);
+  --hover-bg: rgba(0,0,0,0.04);
+  --active-bg: rgba(99,102,241,0.10);
+  --tag-bg: rgba(0,0,0,0.06);
+  --input-bg: rgba(255,255,255,0.55);
+  --badge-profit: rgba(5,150,105,0.10);
+  --badge-risk: rgba(220,50,50,0.10);
+  --badge-warn: rgba(180,130,0,0.10);
+  --badge-info: rgba(30,100,200,0.10);
+  --scrollbar: rgba(0,0,0,0.12);
+  --orb1: #9490ee; --orb2: #60b8f0; --orb3: #b39df4; --orb4: #52c4a0;
+
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #b45309;
+  --profit: #059669;
+  --risk: #dc2626;
+  --warn: #b45309;
+  --info: #1e64c8;
+  --accent: var(--primary);
+  --muted: var(--text-2);
+  --text: var(--text-1);
+  --surface2: var(--glass-bg);
+  --border: var(--glass-border);
+}
+
+/* ─── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+*:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+
+/* ─── BACKGROUND ORBS ───────────────────────────────────── */
+.page-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: var(--bg-grad);
+  overflow: hidden;
+  pointer-events: none;
+}
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.35;
+  animation: float-orb 18s ease-in-out infinite;
+}
+[data-theme="light"] .orb { opacity: 0.20; }
+.orb-1 { width:600px;height:600px;background:var(--orb1);top:-200px;left:-100px;animation-delay:0s; }
+.orb-2 { width:500px;height:500px;background:var(--orb2);bottom:-150px;right:-100px;animation-delay:-6s; }
+.orb-3 { width:400px;height:400px;background:var(--orb3);top:40%;left:50%;animation-name:float-orb-center;animation-delay:-3s; }
+.orb-4 { width:300px;height:300px;background:var(--orb4);bottom:10%;left:20%;animation-delay:-9s; }
+@keyframes float-orb {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-40px) scale(1.05); }
+  66%      { transform: translate(-20px,30px) scale(0.95); }
+}
+@keyframes float-orb-center {
+  0%,100% { transform: translate(-50%,-50%) scale(1); }
+  33%      { transform: translate(calc(-50% + 30px),calc(-50% - 40px)) scale(1.05); }
+  66%      { transform: translate(calc(-50% - 20px),calc(-50% + 30px)) scale(0.95); }
+}
+
+/* ─── GLASS ──────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ─── THEME TOGGLE (fixed) ───────────────────────────────── */
+.theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 100;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--text-2); transition: all 0.2s;
+}
+.theme-toggle:hover { color: var(--text-1); }
+
+/* ─── SHELL / LAYOUT ─────────────────────────────────────── */
+.shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+.sidebar {
+  width: 224px; flex-shrink: 0;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border-right: 1px solid var(--divider);
+  padding: 20px 14px;
+  display: flex; flex-direction: column; gap: 2px;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; overflow-x: hidden;
+}
+
+.sidebar-logo {
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 8px;
+}
+.sidebar-logo-name {
+  font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text-1), rgba(255,255,255,0.65));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  display: block;
+}
+[data-theme="light"] .sidebar-logo-name {
+  background: linear-gradient(135deg, #2d1b8e, #6d28d9);
+  -webkit-background-clip: text; background-clip: text;
+}
+.sidebar-logo-tag {
+  font-size: 9px; color: var(--text-3);
+  letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px;
+}
+
+.nav-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-3);
+  padding: 12px 10px 4px;
+}
+
+/* .item is used by JS (querySelectorAll('.item[data-view]')) — styled as nav-item */
+.item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 9px;
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  background: none; border: none; font-family: var(--font);
+  text-align: left; width: 100%; -webkit-tap-highlight-color: transparent;
+}
+.item:hover { background: var(--hover-bg); color: var(--text-1); }
+.item:active { transform: scale(0.98); }
+.item.active { background: var(--active-bg); color: var(--primary); font-weight: 600; }
+.item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.item-label { flex: 1; }
+
+/* Count badges inside nav items */
+.count, .nav-count {
+  margin-left: auto;
+  background: var(--tag-bg); color: var(--text-2);
+  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px;
+  min-width: 18px; text-align: center;
+}
+.item.active .count, .item.active .nav-count {
+  background: rgba(99,102,241,0.25); color: var(--primary);
+}
+
+.sidebar-footer {
+  margin-top: auto; padding-top: 12px;
+  border-top: 1px solid var(--divider);
+  display: flex; gap: 6px;
+}
+
+/* ─── ICON BUTTON ────────────────────────────────────────── */
+.icon-btn {
+  width: 34px; height: 34px; padding: 0; border-radius: 9px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--text-2); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.18s;
+}
+.icon-btn svg { width: 16px; height: 16px; }
+.icon-btn:hover { background: var(--glass-bg-strong); color: var(--text-1); }
+.icon-btn:active { transform: scale(0.94); }
+
+/* ─── MAIN COLUMN ────────────────────────────────────────── */
+.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* Mobile top header */
+.topheader {
+  display: none;
+  position: sticky; top: 10px; z-index: 30;
+  margin: 10px 12px 0; padding: 12px 16px;
+  align-items: center; justify-content: space-between;
+  border-radius: 16px;
+}
+.brand-mobile {
+  font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-1);
+}
+.topheader-actions { display: flex; gap: 6px; }
+
+main { flex: 1; padding: 32px 36px; max-width: 1080px; width: 100%; }
+
+h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); }
+.sub { color: var(--text-2); font-size: 13.5px; margin-bottom: 24px; line-height: 1.6; }
+
+/* ─── CARDS ──────────────────────────────────────────────── */
+.card {
+  border-radius: 16px; padding: 22px; margin-bottom: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ─── FORMS ──────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.form-grid.alerts { grid-template-columns: repeat(5,1fr); }
+
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text-3); margin-bottom: 6px; letter-spacing: 0.02em; }
+
+input, select, textarea {
+  width: 100%; padding: 10px 14px; border-radius: 10px;
+  background: var(--input-bg); border: 1px solid var(--glass-border);
+  color: var(--text-1); font-family: var(--font); font-size: 13.5px; outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  min-height: 42px;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+input::placeholder, textarea::placeholder { color: var(--text-3); }
+select option { background: var(--frame-bg); color: var(--text-1); }
+textarea { height: 160px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; resize: vertical; }
+
+/* Province chips */
+.prov-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 8px; }
+.prov-chip {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--tag-bg); border: 1px solid var(--glass-border-subtle);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  color: var(--text-2);
+}
+.prov-chip input { width: auto; margin: 0; min-height: auto; padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none; }
+.prov-chip.checked { border-color: var(--primary); color: var(--primary); background: var(--active-bg); }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+button {
+  cursor: pointer; font-family: var(--font); border: none;
+  border-radius: 10px; padding: 10px 20px;
+  font-size: 13.5px; font-weight: 600; min-height: 42px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.18s;
+}
+button:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-end));
+  color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.4);
+}
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.55); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0) scale(0.97); }
+
+.btn-secondary {
+  background: var(--glass-bg); color: var(--text-1);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.btn-secondary:hover { background: var(--glass-bg-strong); }
+
+.btn-ghost {
+  background: transparent; color: var(--text-2);
+  border: 1px solid var(--glass-border-subtle);
+}
+.btn-ghost:hover { background: var(--hover-bg); color: var(--text-1); }
+
+.btn-danger {
+  background: var(--badge-risk); border: 1px solid var(--risk); color: var(--risk);
+}
+.btn-danger:hover { background: rgba(248,113,113,0.25); }
+
+.small-btn { padding: 6px 14px !important; font-size: 12px !important; min-height: 32px !important; border-radius: 8px !important; }
+.btn-row { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ─── BADGES ─────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.badge.ok,   .badge-profit { background: var(--badge-profit); color: var(--profit); }
+.badge.no,   .badge-risk   { background: var(--badge-risk);   color: var(--risk); }
+.badge.warn, .badge-warn   { background: var(--badge-warn);   color: var(--warn); }
+.badge-info                { background: var(--badge-info);   color: var(--info); }
+
+/* ─── PILL / TAG ─────────────────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  background: var(--tag-bg); border: 1px solid var(--glass-border-subtle);
+  color: var(--text-2); white-space: nowrap;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+
+/* ─── LINKS ──────────────────────────────────────────────── */
+a.link { color: var(--primary); text-decoration: none; font-size: 12.5px; font-weight: 500; }
+a.link:hover { text-decoration: underline; }
+
+/* ─── TABLE ──────────────────────────────────────────────── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -22px; padding: 0 22px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 680px; }
+th {
+  text-align: left; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--text-3); border-bottom: 1px solid var(--divider);
+  padding: 9px 14px; white-space: nowrap;
+}
+td { padding: 11px 14px; border-bottom: 1px solid var(--divider); color: var(--text-2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--hover-bg); }
+
+/* ─── STATS GRID ─────────────────────────────────────────── */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.stat { border-radius: 12px; padding: 16px; }
+.stat .v { font-size: 22px; font-weight: 700; color: var(--text-1); line-height: 1; }
+.stat .l { color: var(--text-3); font-size: 11px; margin-top: 6px; }
+
+/* ─── TOOLBAR ────────────────────────────────────────────── */
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+.toolbar input[type=text] { max-width: 260px; }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ─── EMPTY ──────────────────────────────────────────────── */
+.empty { text-align: center; padding: 56px 20px; color: var(--text-3); }
+.empty .big { font-size: 32px; margin-bottom: 12px; opacity: 0.7; }
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 80; padding: 16px;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  border-radius: 16px; padding: 24px; width: 400px; max-width: 100%;
+  background: var(--frame-bg);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.modal h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--text-1); }
+
+/* ─── TOASTS ─────────────────────────────────────────────── */
+.toast-container {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 90; display: flex; flex-direction: column; gap: 8px;
+  align-items: center; pointer-events: none; width: 100%;
+}
+.toast {
+  pointer-events: auto;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+  border-radius: 20px; padding: 11px 18px;
+  font-size: 13px; font-weight: 500; color: var(--text-1);
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast::before { content: ''; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.toast-success::before { background: var(--profit); }
+.toast-error::before   { background: var(--risk); }
+.toast-info::before    { background: var(--primary); }
+
+/* ─── COMMAND PALETTE ────────────────────────────────────── */
+.cmdk-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: none; align-items: flex-start; justify-content: center;
+  z-index: 85; padding: 14vh 16px 16px;
+}
+.cmdk-overlay.open { display: flex; }
+.cmdk-box {
+  border-radius: 16px; width: 520px; max-width: 100%; overflow: hidden;
+  background: var(--frame-bg);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+}
+.cmdk-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--divider);
+}
+.cmdk-input-wrap svg { width: 18px; height: 18px; color: var(--text-3); flex-shrink: 0; }
+.cmdk-input-wrap input {
+  border: none; background: none; padding: 0; font-size: 15px;
+  min-height: auto; backdrop-filter: none; color: var(--text-1);
+}
+.cmdk-input-wrap input:focus { box-shadow: none; border: none; }
+.cmdk-list { max-height: 320px; overflow-y: auto; padding: 8px; }
+.cmdk-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  font-size: 13.5px; color: var(--text-2);
+}
+.cmdk-item svg { width: 16px; height: 16px; color: var(--text-3); }
+.cmdk-item:hover, .cmdk-item.hl { background: var(--hover-bg); color: var(--text-1); }
+.cmdk-empty { padding: 24px; text-align: center; color: var(--text-3); font-size: 13px; }
+
+/* ─── TABBAR MOBILE ──────────────────────────────────────── */
+.tabbar { display: none; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 980px) {
+  .form-grid, .form-grid.alerts { grid-template-columns: repeat(2,1fr); }
+  .prov-grid { grid-template-columns: repeat(3,1fr); }
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .topheader { display: flex; }
+  .shell { flex-direction: column; }
+  main { padding: 14px 14px 96px; max-width: 100%; }
+  h2 { font-size: 18px; }
+  .card { padding: 16px; border-radius: 14px; }
+  .form-grid, .form-grid.alerts { grid-template-columns: 1fr; }
+  .grid-stats { grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .prov-grid { grid-template-columns: repeat(2,1fr); }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar input[type=text], .toolbar select { max-width: 100%; }
+  .btn-row { flex-direction: column; align-items: stretch; }
+  .btn-row button { width: 100%; justify-content: center; }
+  .table-scroll { margin: 0 -16px; padding: 0 16px; }
+  .theme-toggle { display: none; }
+
+  .tabbar {
+    display: flex;
+    position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 50;
+    border-radius: 18px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    justify-content: space-around;
   }
-  [data-theme="dark"]{
-    --text:#F2F2F7; --muted:#A6A6B3; --accent:#8C7CFF; --accent2:#36D6FF; --accent-text:#0B0B0F;
-    --success:#34D880; --warning:#FFB648; --danger:#FF6B85;
-    --glass-bg:rgba(28,28,38,.55); --glass-bg-strong:rgba(28,28,38,.72);
-    --glass-border:rgba(255,255,255,.10); --glass-border-soft:rgba(255,255,255,.07);
-    --surface2:rgba(255,255,255,.06); --border:rgba(255,255,255,.10);
-    --shadow-sm:0 4px 18px rgba(0,0,0,.35);
-    --shadow-md:0 10px 32px rgba(0,0,0,.45);
-    --shadow-lg:0 24px 64px rgba(0,0,0,.6);
-    --mesh-1:#3A2150; --mesh-2:#142A4A; --mesh-3:#2A1A4A; --mesh-4:#0F3B33; --page-bg:#0A0A12;
+  .tabbar .item {
+    flex-direction: column; gap: 3px; font-size: 10px;
+    padding: 6px 4px; border-radius: 12px; flex: 1; align-items: center;
+    width: auto;
   }
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0;font-family:var(--font);color:var(--text);
-    overscroll-behavior-y:none;-webkit-font-smoothing:antialiased;
-    min-height:100vh;background:var(--page-bg);
-    transition:background-color .3s ease,color .3s ease;
-  }
-  /* Soft animated mesh-gradient backdrop */
-  body::before{
-    content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-    background:
-      radial-gradient(38% 30% at 12% 8%, var(--mesh-1) 0%, transparent 70%),
-      radial-gradient(34% 28% at 88% 14%, var(--mesh-2) 0%, transparent 70%),
-      radial-gradient(40% 34% at 20% 92%, var(--mesh-3) 0%, transparent 70%),
-      radial-gradient(36% 30% at 92% 88%, var(--mesh-4) 0%, transparent 70%);
-    filter:blur(10px) saturate(120%);
-    opacity:.85;
-    transition:opacity .3s ease;
-  }
-  *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+  .tabbar .item svg { width: 20px; height: 20px; }
+  .tabbar .item .count, .tabbar .item .nav-count { display: none; }
+  .tabbar .item.active { box-shadow: none; }
 
-  .shell{display:flex;min-height:100vh}
+  .modal-bg { align-items: flex-end; padding: 0; }
+  .modal { width: 100%; border-radius: 20px 20px 0 0; }
+  .cmdk-overlay { padding: 0; align-items: flex-end; }
+  .cmdk-box { border-radius: 20px 20px 0 0; width: 100%; }
+}
 
-  /* ---------------- Glass surfaces ---------------- */
-  .glass{
-    background:var(--glass-bg);
-    -webkit-backdrop-filter:blur(22px) saturate(160%);
-    backdrop-filter:blur(22px) saturate(160%);
-    border:1px solid var(--glass-border);
-  }
-
-  /* ---------------- Sidebar (desktop) ---------------- */
-  .sidebar{
-    width:240px;flex-shrink:0;padding:18px 14px;display:flex;flex-direction:column;gap:4px;
-    position:sticky;top:16px;align-self:flex-start;height:calc(100vh - 32px);margin:16px 0 16px 16px;
-    border-radius:24px;box-shadow:var(--shadow-md);
-  }
-  .brand{font-size:15px;font-weight:700;padding:8px 10px 22px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
-  .nav-list{display:flex;flex-direction:column;gap:3px;flex:1}
-  .item{
-    border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--font);
-    font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:11px;
-    padding:10px 11px;border-radius:14px;text-align:left;width:100%;-webkit-tap-highlight-color:transparent;
-    transition:background-color .15s ease,color .15s ease,box-shadow .15s ease;
-  }
-  .item svg{flex-shrink:0;width:18px;height:18px}
-  .item:hover{background:var(--surface2);color:var(--text)}
-  .item:active{transform:scale(.98)}
-  .item.active{
-    background:linear-gradient(135deg, var(--accent), var(--accent2));
-    color:#fff;font-weight:600;box-shadow:0 6px 18px rgba(108,92,231,.35);
-  }
-  .item.active svg{color:#fff}
-  .item .count{margin-left:auto;background:rgba(127,127,150,.18);color:var(--text);font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill);min-width:18px;text-align:center}
-  .item.active .count{background:rgba(255,255,255,.3);color:#fff}
-  .item-label{flex:1}
-  .sidebar-footer{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border)}
-  .icon-btn{
-    border:none;background:none;cursor:pointer;color:var(--muted);width:36px;height:36px;
-    border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    transition:background-color .15s ease,color .15s ease;
-  }
-  .icon-btn svg{width:18px;height:18px}
-  .icon-btn:hover{background:var(--surface2);color:var(--text)}
-  .icon-btn:active{transform:scale(.94)}
-
-  /* ---------------- Top header ---------------- */
-  .topheader{
-    display:none;position:sticky;top:10px;z-index:30;margin:10px 12px 0;padding:12px 16px;
-    align-items:center;justify-content:space-between;border-radius:18px;box-shadow:var(--shadow-sm);
-  }
-  .brand-mobile{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
-  .topheader-actions{display:flex;gap:4px}
-
-  .main-col{flex:1;min-width:0;display:flex;flex-direction:column}
-  main{flex:1;padding:36px 40px;max-width:1080px;width:100%;min-width:0}
-  h2{margin:0 0 4px;font-size:21px;font-weight:700;letter-spacing:-.3px}
-  .sub{color:var(--muted);font-size:13.5px;margin-bottom:26px;line-height:1.5}
-
-  .card{border-radius:var(--radius);padding:22px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
-  .card.glass{background:var(--glass-bg)}
-
-  .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .form-grid.alerts{grid-template-columns:repeat(5,1fr)}
-  label{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-bottom:6px}
-  input,select,textarea{
-    width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    padding:10px 12px;border-radius:var(--radius-sm);font-size:13.5px;min-height:42px;font-family:var(--font);
-    transition:border-color .15s ease,box-shadow .15s ease;
-    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  }
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)}
-  input::placeholder,textarea::placeholder{color:var(--muted)}
-
-  button{cursor:pointer;font-family:var(--font);border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13.5px;font-weight:600;min-height:42px;-webkit-tap-highlight-color:transparent;transition:filter .15s ease,border-color .15s ease,color .15s ease,transform .1s ease,box-shadow .15s ease}
-  button:active{transform:scale(.97)}
-  .btn-primary{background:linear-gradient(135deg, var(--accent), var(--accent2));color:var(--accent-text);box-shadow:0 6px 20px rgba(108,92,231,.35)}
-  .btn-primary:hover{filter:brightness(1.08);box-shadow:0 8px 26px rgba(108,92,231,.45)}
-  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
-  .btn-secondary:hover{background:rgba(127,127,150,.18)}
-  .btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
-  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-  .btn-danger{background:rgba(240,80,110,.10);border:1px solid var(--danger);color:var(--danger)}
-  .btn-danger:hover{background:rgba(240,80,110,.18)}
-  .btn-row{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-
-  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -22px;padding:0 22px}
-  table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
-  th{text-align:left;color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
-  td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:var(--surface2)}
-
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;white-space:nowrap;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-  .badge.ok{background:color-mix(in srgb, var(--success) 18%, transparent);color:var(--success)}
-  .badge.no{background:color-mix(in srgb, var(--danger) 14%, transparent);color:var(--danger)}
-  .badge.warn{background:color-mix(in srgb, var(--warning) 18%, transparent);color:var(--warning)}
-
-  a.link{color:var(--accent);text-decoration:none;font-size:12.5px;font-weight:500}
-  a.link:hover{text-decoration:underline}
-
-  .empty{text-align:center;padding:56px 20px;color:var(--muted)}
-  .empty .big{font-size:32px;margin-bottom:12px;opacity:.7}
-
-  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap}
-  .toolbar input[type=text]{max-width:260px}
-  .pill{font-size:11px;font-weight:500;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:var(--radius-pill);white-space:nowrap;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-
-  .grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-  .stat{border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm)}
-  .stat .v{font-size:25px;font-weight:700;letter-spacing:-.3px}
-  .stat .l{color:var(--muted);font-size:12px;margin-top:4px}
-
-  .small-btn{padding:6px 12px;font-size:12px;min-height:32px}
-  .row-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-  .modal-bg{position:fixed;inset:0;background:rgba(20,15,40,.35);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
-  .modal-bg.open{display:flex}
-  .modal{border-radius:var(--radius);padding:24px;width:420px;max-width:100%;box-shadow:var(--shadow-lg)}
-  .modal h3{margin:0 0 8px;font-size:16px}
-
-  textarea{height:160px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;resize:vertical}
-
-  .prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
-  .prov-chip{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;font-size:12.5px;cursor:pointer;transition:border-color .15s ease,color .15s ease}
-  .prov-chip input{width:auto;margin:0;min-height:auto}
-  .prov-chip.checked{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent)}
-
-  /* ---------------- Bottom tab bar (mobile) ---------------- */
-  .tabbar{display:none}
-
-  /* ---------------- Command palette ---------------- */
-  .cmdk-overlay{position:fixed;inset:0;background:rgba(20,15,40,.32);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;z-index:70;padding:14vh 16px 16px}
-  .cmdk-overlay.open{display:flex}
-  .cmdk-box{border-radius:20px;width:520px;max-width:100%;box-shadow:var(--shadow-lg);overflow:hidden}
-  .cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
-  .cmdk-input-wrap svg{width:18px;height:18px;color:var(--muted);flex-shrink:0}
-  .cmdk-input-wrap input{border:none;background:none;padding:0;font-size:15px;min-height:auto;backdrop-filter:none}
-  .cmdk-input-wrap input:focus{box-shadow:none}
-  .cmdk-list{max-height:320px;overflow-y:auto;padding:8px}
-  .cmdk-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:13.5px;color:var(--text)}
-  .cmdk-item svg{width:16px;height:16px;color:var(--muted)}
-  .cmdk-item:hover,.cmdk-item.hl{background:var(--surface2)}
-  .cmdk-empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
-
-  /* ---------------- Toasts ---------------- */
-  .toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;pointer-events:none}
-  .toast{
-    pointer-events:auto;box-shadow:var(--shadow-lg);
-    border-radius:var(--radius-pill);padding:11px 18px;font-size:13px;font-weight:500;color:var(--text);
-    display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease;
-    max-width:90vw;
-  }
-  .toast.show{opacity:1;transform:translateY(0)}
-  .toast::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0}
-  .toast-success::before{background:var(--success)}
-  .toast-error::before{background:var(--danger)}
-  .toast-info::before{background:var(--accent)}
-
-  /* ===================== RESPONSIVE ===================== */
-  @media (max-width: 980px){
-    .form-grid, .form-grid.alerts{grid-template-columns:repeat(2,1fr)}
-    .grid-stats{grid-template-columns:repeat(2,1fr)}
-    .prov-grid{grid-template-columns:repeat(3,1fr)}
-  }
-
-  @media (max-width: 768px){
-    .sidebar{display:none}
-    .topheader{display:flex}
-    .shell{flex-direction:column}
-    main{padding:14px 14px 96px;max-width:100%}
-    h2{font-size:19px}
-    .card{padding:16px;border-radius:18px}
-    .form-grid, .form-grid.alerts{grid-template-columns:1fr}
-    .grid-stats{grid-template-columns:repeat(2,1fr);gap:10px}
-    .stat{padding:14px 16px}
-    .stat .v{font-size:21px}
-    .prov-grid{grid-template-columns:repeat(2,1fr)}
-    .toolbar{flex-direction:column;align-items:stretch}
-    .toolbar input[type=text], .toolbar select{max-width:100%}
-    .btn-row{flex-direction:column;align-items:stretch}
-    .btn-row button{width:100%}
-    .table-scroll{margin:0 -16px;padding:0 16px}
-
-    .tabbar{
-      display:flex;position:fixed;bottom:10px;left:10px;right:10px;z-index:50;
-      border-radius:22px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));
-      justify-content:space-around;box-shadow:var(--shadow-md);
-    }
-    .tabbar.glass{background:var(--glass-bg-strong)}
-    .tabbar .item{flex-direction:column;gap:3px;font-size:10.5px;padding:7px 4px;border-radius:14px;flex:1}
-    .tabbar .item svg{width:20px;height:20px}
-    .tabbar .item .count{display:none}
-    .tabbar .item.active{box-shadow:0 4px 14px rgba(108,92,231,.4)}
-
-    .modal-bg{align-items:flex-end;padding:0}
-    .modal{width:100%;border-radius:24px 24px 0 0;box-shadow:0 -16px 50px rgba(20,15,40,.25)}
-    .cmdk-overlay{padding:0;align-items:flex-end}
-    .cmdk-box{border-radius:24px 24px 0 0;width:100%}
-  }
-
-  @media (max-width: 480px){
-    .grid-stats{grid-template-columns:1fr}
-    .prov-grid{grid-template-columns:1fr 1fr}
-  }
+@media (max-width: 480px) {
+  .grid-stats { grid-template-columns: 1fr; }
+  .prov-grid { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
+
+<!-- Animated background -->
+<div class="page-bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<!-- Fixed theme toggle (desktop) -->
+<button class="theme-toggle" id="btn-theme" title="Cambiar tema">
+  <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
+</button>
+
 <div class="shell">
-  <aside class="sidebar glass">
-    <div class="brand">🚗 Revender</div>
-    <nav class="nav-list">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-logo-name">Revender</span>
+      <div class="sidebar-logo-tag">Identificá · Comprá · Revendé</div>
+    </div>
+
+    <nav class="nav-list" style="display:flex;flex-direction:column;gap:3px;flex:1">
+      <div class="nav-section-label">Principal</div>
       <button type="button" class="item active" data-view="buscar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span class="item-label">Buscar</span><span class="count" id="cnt-search"></span>
+        <span class="item-label">Buscar</span>
+        <span class="count" id="cnt-search"></span>
       </button>
       <button type="button" class="item" data-view="historial">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-        <span class="item-label">Historial</span><span class="count" id="cnt-historial"></span>
+        <span class="item-label">Historial</span>
+        <span class="count" id="cnt-historial"></span>
       </button>
       <button type="button" class="item" data-view="oportunidades">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-        <span class="item-label">Top 10</span><span class="count" id="cnt-oport"></span>
+        <span class="item-label">Oportunidades</span>
+        <span class="count" id="cnt-oport"></span>
       </button>
+      <div class="nav-section-label">Herramientas</div>
       <button type="button" class="item" data-view="alertas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        <span class="item-label">Alertas</span><span class="count" id="cnt-alertas"></span>
+        <span class="item-label">Alertas</span>
+        <span class="count" id="cnt-alertas"></span>
       </button>
       <button type="button" class="item" data-view="importar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
         <span class="item-label">Importar datos</span>
       </button>
     </nav>
+
     <div class="sidebar-footer">
       <button type="button" class="icon-btn" id="btn-cmdk-side" title="Buscar (⌘K)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
-      <button type="button" class="icon-btn" id="btn-theme" title="Cambiar tema">
-        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
-      </button>
     </div>
   </aside>
 
+  <!-- ── MAIN COLUMN ── -->
   <div class="main-col">
+
+    <!-- Mobile header -->
     <header class="topheader glass">
-      <div class="brand-mobile">🚗 Revender</div>
+      <div class="brand-mobile">Revender</div>
       <div class="topheader-actions">
         <button type="button" class="icon-btn" id="btn-cmdk-mobile" title="Buscar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -316,144 +626,174 @@
         </button>
       </div>
     </header>
+
     <main>
 
-    <!-- BUSCAR -->
-    <section id="view-buscar">
-      <h2>Buscar oportunidad</h2>
-      <div class="sub">Definí marca, modelo, versión, año y zona geográfica. Los resultados los carga Claude navegando Mercado Libre en vivo y se guardan acá.</div>
-      <div class="card glass">
-        <div class="form-grid">
-          <div><label>Marca</label><input id="f-marca" placeholder="Peugeot"></div>
-          <div><label>Modelo</label><input id="f-modelo" placeholder="208"></div>
-          <div><label>Versión</label><input id="f-version" placeholder="Active (opcional)"></div>
-          <div><label>Año mínimo</label><input id="f-anio-min" type="number" placeholder="2022"></div>
-          <div><label>Año máximo</label><input id="f-anio-max" type="number" placeholder="2024"></div>
+      <!-- ── BUSCAR ── -->
+      <section id="view-buscar">
+        <h2>Buscar oportunidad</h2>
+        <div class="sub">Definí marca, modelo, versión, año y zona. La extensión navega Mercado Libre en vivo y trae los resultados automáticamente.</div>
+
+        <div class="card">
+          <div class="form-grid">
+            <div><label>Marca</label><input id="f-marca" placeholder="Peugeot"></div>
+            <div><label>Modelo</label><input id="f-modelo" placeholder="208"></div>
+            <div><label>Versión</label><input id="f-version" placeholder="Active (opcional)"></div>
+            <div><label>Año mínimo</label><input id="f-anio-min" type="number" placeholder="2022"></div>
+            <div><label>Año máximo</label><input id="f-anio-max" type="number" placeholder="2024"></div>
+          </div>
+
+          <div style="margin-top:18px">
+            <label>Provincias <span style="font-weight:400;opacity:.6">(dejá vacío para todo el país)</span></label>
+            <div id="f-provincias" class="prov-grid"></div>
+          </div>
+
+          <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
+            <div><label>Ciudad / localidad (opcional)</label><input id="f-ciudad" placeholder="Ej: Bahía Blanca"></div>
+            <div><label>Radio desde ciudad (km)</label><input id="f-radio-km" type="number" placeholder="Ej: 100"></div>
+            <div>
+              <label>Antigüedad de publicación</label>
+              <select id="f-antiguedad">
+                <option value="">Sin filtro (todas)</option>
+                <option value="hoy">Publicadas hoy</option>
+                <option value="semana">Esta semana</option>
+                <option value="mes">Este último mes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
+            <div><label>Kilometraje máximo</label><input id="f-km-max" type="number" placeholder="Ej: 120000"></div>
+            <div><label>Precio máximo (ARS, opcional)</label><input id="f-precio-max" type="number" placeholder="Ej: 25000000"></div>
+            <div>
+              <label>Umbral de oportunidad</label>
+              <select id="f-threshold">
+                <option value="15">Conservador (≥15%)</option>
+                <option value="12" selected>Normal (≥12%)</option>
+                <option value="10">Agresivo (≥10%)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-buscar-extension">Buscar en Mercado Libre</button>
+            <button class="btn-ghost" id="btn-nueva-busqueda">Crear búsqueda manual</button>
+          </div>
+          <div class="sub" style="margin-top:10px;margin-bottom:0">"Buscar en Mercado Libre" usa la extensión y abre una pestaña real con resultados automáticos. "Crear búsqueda manual" genera un mensaje para copiar y pegar en Claude.</div>
+          <div id="extension-hint" class="sub" style="margin-top:6px;display:none;color:var(--warn)">⚠ No detecté la extensión Revender instalada. Instalala para usar la búsqueda automática.</div>
         </div>
-        <div style="margin-top:16px">
-          <label>Provincias (dejá vacío para "todo el país")</label>
-          <div id="f-provincias" class="prov-grid"></div>
-        </div>
-        <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
-          <div><label>Ciudad / localidad (opcional)</label><input id="f-ciudad" placeholder="Ej: Bahía Blanca"></div>
-          <div><label>Radio desde la ciudad (km, opcional)</label><input id="f-radio-km" type="number" placeholder="Ej: 100"></div>
-          <div>
-            <label>Antigüedad de la publicación</label>
-            <select id="f-antiguedad">
-              <option value="">Sin filtro (todas)</option>
+
+        <div id="ultima-busqueda-box"></div>
+      </section>
+
+      <!-- ── HISTORIAL ── -->
+      <section id="view-historial" style="display:none">
+        <h2>Historial de búsquedas</h2>
+        <div class="sub">Todas las búsquedas realizadas, con sus resultados y análisis de oportunidades.</div>
+        <div id="historial-list"></div>
+      </section>
+
+      <!-- ── OPORTUNIDADES ── -->
+      <section id="view-oportunidades" style="display:none">
+        <h2>Oportunidades detectadas</h2>
+        <div class="sub">Autos publicados por debajo del valor de mercado — dueño directo, precios en USD al dólar Blue (dolarhoy.com).</div>
+        <div class="grid-stats" id="oport-stats"></div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" id="oport-filter" placeholder="Filtrar por marca o modelo...">
+            <select id="oport-antiguedad-filter" style="max-width:200px">
+              <option value="">Cualquier antigüedad</option>
               <option value="hoy">Publicadas hoy</option>
-              <option value="semana">Esta semana</option>
-              <option value="mes">Este último mes</option>
+              <option value="semana">Última semana</option>
+              <option value="mes">Último mes</option>
             </select>
+            <span class="pill" id="oport-count-pill"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Vehículo</th>
+                  <th>Año</th>
+                  <th>Km</th>
+                  <th>Precio USD Blue</th>
+                  <th>Valor Mercado</th>
+                  <th>% Reboleo</th>
+                  <th>Publicado</th>
+                  <th>Ubicación</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="oport-tbody"></tbody>
+            </table>
+          </div>
+          <div id="oport-empty" class="empty" style="display:none">
+            <div class="big">🔎</div>
+            No hay resultados todavía.<br>Corré una búsqueda para ver las oportunidades.
           </div>
         </div>
-        <div class="form-grid" style="margin-top:16px;grid-template-columns:repeat(3,1fr)">
-          <div><label>Kilometraje máximo</label><input id="f-km-max" type="number" placeholder="Ej: 120000"></div>
-          <div><label>Precio máximo (opcional, en ARS)</label><input id="f-precio-max" type="number" placeholder="Ej: 25000000"></div>
-          <div>
-            <label>Umbral de oportunidad</label>
-            <select id="f-threshold">
-              <option value="15">Conservador (≥15%)</option>
-              <option value="12" selected>Normal (≥12%)</option>
-              <option value="10">Agresivo (≥10%)</option>
-            </select>
+      </section>
+
+      <!-- ── ALERTAS ── -->
+      <section id="view-alertas" style="display:none">
+        <h2>Alertas</h2>
+        <div class="sub">Configurá condiciones de alerta. Cuando un resultado nuevo las cumpla, aparecerá destacado.</div>
+        <div class="card">
+          <div class="form-grid alerts">
+            <div><label>Marca</label><input id="a-marca" placeholder="Peugeot"></div>
+            <div><label>Modelo</label><input id="a-modelo" placeholder="208"></div>
+            <div><label>Año mín.</label><input id="a-anio-min" type="number" placeholder="2022"></div>
+            <div><label>Km máx.</label><input id="a-km-max" type="number" placeholder="120000"></div>
+            <div><label>% bajo mercado mín.</label><input id="a-desc-min" type="number" placeholder="10"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-nueva-alerta">Crear alerta</button>
           </div>
         </div>
-        <div class="btn-row">
-          <button class="btn-primary" id="btn-nueva-busqueda">Crear búsqueda</button>
-          <button class="btn-secondary" id="btn-buscar-extension">🔎 Buscar en Mercado Libre</button>
-          <span class="sub" style="margin:0;align-self:center">"Crear búsqueda" usa el flujo manual (copiás un mensaje para Claude). "Buscar en Mercado Libre" usa la extensión — abre una pestaña real y trae resultados automáticamente.</span>
+        <div class="card">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Marca / Modelo</th>
+                  <th>Año mín.</th>
+                  <th>Km máx.</th>
+                  <th>% mín. bajo mercado</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="alertas-tbody"></tbody>
+            </table>
+          </div>
+          <div id="alertas-empty" class="empty" style="display:none">
+            <div class="big">🔔</div>
+            Todavía no creaste alertas.
+          </div>
         </div>
-        <div id="extension-hint" class="sub" style="margin-top:6px;display:none">⚠ No detecté la extensión Revender instalada. Instalala para usar el botón de búsqueda automática, o seguí con el flujo manual.</div>
-      </div>
-      <div id="ultima-busqueda-box"></div>
-    </section>
+      </section>
 
-    <!-- HISTORIAL -->
-    <section id="view-historial" style="display:none">
-      <h2>Historial de búsquedas</h2>
-      <div class="sub">Todas las búsquedas realizadas, con sus resultados.</div>
-      <div id="historial-list"></div>
-    </section>
+      <!-- ── IMPORTAR ── -->
+      <section id="view-importar" style="display:none">
+        <h2>Importar resultados</h2>
+        <div class="sub">Pegá el JSON de resultados que te pase Claude para integrarlos al historial, oportunidades y alertas automáticamente.</div>
+        <div class="card">
+          <label>JSON de resultados</label>
+          <textarea id="import-json" placeholder='{"marca":"Peugeot","modelo":"208","anioMin":2022,"anioMax":2024,"resultados":[{"titulo":"...","anio":2022,"km":49000,"precio":16990,"moneda":"USD","ubicacion":"Mar del Plata","link":"https://...","valorMercado":18500,"diasPublicado":3,"esOportunidad":false,"motivo":"","riesgos":""}]}'></textarea>
+          <div class="sub" style="margin-top:8px">Tip: <code>diasPublicado</code> es opcional — cuántos días hace que se publicó el aviso (0 = hoy, ≤7 = esta semana, ≤30 = este mes).</div>
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-importar">Importar</button>
+            <button class="btn-ghost" id="btn-ejemplo">Cargar ejemplo (Peugeot 208)</button>
+          </div>
+          <div id="import-status" class="sub" style="margin-top:10px"></div>
+        </div>
+      </section>
 
-    <!-- OPORTUNIDADES -->
-    <section id="view-oportunidades" style="display:none">
-      <h2>Top 10 más baratos</h2>
-      <div class="sub">Los 10 autos más baratos encontrados por búsqueda, dueño directo, con precios en USD al valor del dólar Blue (promedio compra-venta, dolarhoy.com).</div>
-      <div class="grid-stats" id="oport-stats"></div>
-      <div class="card glass">
-        <div class="toolbar">
-          <input type="text" id="oport-filter" placeholder="Filtrar por marca o modelo...">
-          <select id="oport-antiguedad-filter" style="max-width:200px">
-            <option value="">Cualquier antigüedad</option>
-            <option value="hoy">Publicadas hoy</option>
-            <option value="semana">Última semana</option>
-            <option value="mes">Último mes</option>
-          </select>
-          <span class="pill" id="oport-count-pill"></span>
-        </div>
-        <div class="table-scroll">
-        <table>
-          <thead><tr><th>#</th><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Valor Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Ubicación</th><th></th></tr></thead>
-          <tbody id="oport-tbody"></tbody>
-        </table>
-        </div>
-        <div id="oport-empty" class="empty" style="display:none">
-          <div class="big">🔎</div>
-          No hay resultados todavía.<br>Corré una búsqueda para ver el ranking.
-        </div>
-      </div>
-    </section>
+    </main>
+  </div><!-- /main-col -->
 
-    <!-- ALERTAS -->
-    <section id="view-alertas" style="display:none">
-      <h2>Alertas</h2>
-      <div class="sub">Configurá condiciones. Cuando un resultado nuevo cumpla la condición, aparece como alerta activa.</div>
-      <div class="card glass">
-        <div class="form-grid alerts">
-          <div><label>Marca</label><input id="a-marca" placeholder="Peugeot"></div>
-          <div><label>Modelo</label><input id="a-modelo" placeholder="208"></div>
-          <div><label>Año mín.</label><input id="a-anio-min" type="number" placeholder="2022"></div>
-          <div><label>Km máx.</label><input id="a-km-max" type="number" placeholder="120000"></div>
-          <div><label>% bajo mercado mín.</label><input id="a-desc-min" type="number" placeholder="10"></div>
-        </div>
-        <div class="btn-row">
-          <button class="btn-primary" id="btn-nueva-alerta">Crear alerta</button>
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="table-scroll">
-        <table>
-          <thead><tr><th>Marca / Modelo</th><th>Año mín.</th><th>Km máx.</th><th>% mín. bajo mercado</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="alertas-tbody"></tbody>
-        </table>
-        </div>
-        <div id="alertas-empty" class="empty" style="display:none">
-          <div class="big">🔔</div>
-          Todavía no creaste alertas.
-        </div>
-      </div>
-    </section>
-
-    <!-- IMPORTAR -->
-    <section id="view-importar" style="display:none">
-      <h2>Importar resultados</h2>
-      <div class="sub">Pegá aquí el JSON de resultados que te pase Claude después de analizar una búsqueda en Mercado Libre, y se integra al historial, oportunidades y alertas automáticamente.</div>
-      <div class="card glass">
-        <label>JSON de resultados</label>
-        <textarea id="import-json" placeholder='{"marca":"Peugeot","modelo":"208","anioMin":2022,"anioMax":2024,"resultados":[{"titulo":"...","anio":2022,"km":49000,"precio":16990,"moneda":"USD","ubicacion":"Mar del Plata","link":"https://...","valorMercado":18500,"diasPublicado":3,"esOportunidad":false,"motivo":"","riesgos":""}]}'></textarea>
-        <div class="sub" style="margin-top:6px">Tip: <code>diasPublicado</code> es opcional — cuántos días hace que se publicó el aviso (0 = hoy, ≤7 = esta semana, ≤30 = este mes). Se usa para el filtro de antigüedad en Oportunidades.</div>
-        <div class="btn-row">
-          <button class="btn-primary" id="btn-importar">Importar</button>
-          <button class="btn-ghost" id="btn-ejemplo">Cargar ejemplo (Peugeot 208)</button>
-        </div>
-        <div id="import-status" class="sub" style="margin-top:10px"></div>
-      </div>
-    </section>
-
-  </main>
-  </div>
-
+  <!-- Mobile tabbar -->
   <nav class="tabbar glass">
     <button type="button" class="item tab-item active" data-view="buscar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -465,7 +805,7 @@
     </button>
     <button type="button" class="item tab-item" data-view="oportunidades">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
-      <span>Top 10</span>
+      <span>Oportunidades</span>
     </button>
     <button type="button" class="item tab-item" data-view="alertas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -476,10 +816,12 @@
       <span>Importar</span>
     </button>
   </nav>
-</div>
 
+</div><!-- /shell -->
+
+<!-- Command palette -->
 <div class="cmdk-overlay" id="cmdk-overlay">
-  <div class="cmdk-box glass">
+  <div class="cmdk-box">
     <div class="cmdk-input-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="cmdk-input" type="text" placeholder="Ir a una sección..." autocomplete="off">
@@ -488,8 +830,9 @@
   </div>
 </div>
 
+<!-- Delete modal -->
 <div class="modal-bg" id="modal-bg">
-  <div class="modal glass">
+  <div class="modal">
     <h3>Confirmar eliminación</h3>
     <p class="sub" style="margin-bottom:0">Esta acción no se puede deshacer.</p>
     <div class="btn-row">
@@ -499,6 +842,7 @@
   </div>
 </div>
 
+<!-- Toasts -->
 <div class="toast-container" id="toast-container"></div>
 
 <script>
@@ -867,12 +1211,12 @@ function renderUltimaBusqueda(){
   const b = DB.historial[0];
   const accionesManual = b.origen === 'extension'
     ? `<div class="sub">${b.estadoMensaje || 'Búsqueda iniciada vía extensión.'}</div>`
-    : `<div class="sub">Creada ${new Date(b.fecha).toLocaleString('es-AR')}. Para que se complete con datos reales, copiá el mensaje y pegalo en el chat con Claude:</div>
+    : `<div class="sub">Creada ${new Date(b.fecha).toLocaleString('es-AR')}. Para completarla con datos reales, copiá el mensaje y pegalo en el chat con Claude:</div>
        <div class="btn-row" style="margin-top:6px">
          <button class="btn-secondary small-btn" onclick="copyClaudePrompt('${b.id}')">📋 Copiar mensaje para Claude</button>
          <span class="pill">id: ${b.id}</span>
        </div>`;
-  box.innerHTML = `<div class="card glass">
+  box.innerHTML = `<div class="card">
     <div class="toolbar">
       <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''} (${b.anioMin||'?'}–${b.anioMax||'?'})</strong>
       <span class="pill">${b.resultados.length} resultados</span>
@@ -888,7 +1232,7 @@ function renderUltimaBusqueda(){
 function renderHistorial(){
   const cont = document.getElementById('historial-list');
   if(!DB.historial.length){
-    cont.innerHTML = `<div class="card glass"><div class="empty"><div class="big">🕘</div>Todavía no hiciste ninguna búsqueda.</div></div>`;
+    cont.innerHTML = `<div class="card"><div class="empty"><div class="big">🕘</div>Todavía no hiciste ninguna búsqueda.</div></div>`;
     return;
   }
   cont.innerHTML = DB.historial.map(b=>{
@@ -914,7 +1258,7 @@ function renderHistorial(){
         <td>${r.link?`<a class="link" href="${r.link}" target="_blank">Ver →</a>`:''}</td>
       </tr>`;
     }).join('');
-    return `<div class="card glass">
+    return `<div class="card">
       <div class="toolbar">
         <div>
           <strong>${b.marca} ${b.modelo}${b.version?' '+b.version:''}</strong> <span class="pill">${b.anioMin||'?'}–${b.anioMax||'?'}</span> <span class="pill">📍 ${describeZona(b)}</span> ${b.antiguedad?`<span class="pill">🕐 ${ANTIGUEDAD_LABEL[b.antiguedad]}</span>`:''} ${estadoPill(b)}
@@ -925,7 +1269,7 @@ function renderHistorial(){
           <button class="btn-danger small-btn" onclick="confirmDeleteBusqueda('${b.id}')">Eliminar</button>
         </div>
       </div>
-      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Top 10</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
+      ${b.resultados.length ? `<div class="table-scroll"><table><thead><tr><th>Vehículo</th><th>Año</th><th>Km</th><th>Precio USD Blue</th><th>Val. Mercado</th><th>% Reboleo</th><th>Publicado</th><th>Oportunidad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="sub">Sin resultados cargados todavía.</div>'}
     </div>`;
   }).join('');
 }
@@ -989,7 +1333,7 @@ function renderOportunidades(){
   document.getElementById('oport-stats').innerHTML = `
     <div class="stat glass"><div class="v">${totalBusquedas}</div><div class="l">Búsquedas realizadas</div></div>
     <div class="stat glass"><div class="v">${totalResultados}</div><div class="l">Publicaciones analizadas</div></div>
-    <div class="stat glass"><div class="v" style="color:var(--success)">${totalTop10}</div><div class="l">En el top 10</div></div>
+    <div class="stat glass"><div class="v" style="color:var(--success)">${totalTop10}</div><div class="l">Oportunidades</div></div>
     <div class="stat glass"><div class="v">${precioMin}</div><div class="l">Precio más bajo encontrado</div></div>
     <div class="stat glass"><div class="v" style="color:var(--success)">${avgDiff}</div><div class="l">Reboleo promedio vs. mercado</div></div>
   `;
@@ -1114,7 +1458,6 @@ document.getElementById('btn-importar').addEventListener('click', ()=>{
     fecha: new Date().toISOString(),
     resultados: data.resultados || []
   };
-  // si ya existe una búsqueda con ese id, la reemplaza; si no, la agrega
   const idx = DB.historial.findIndex(b=>b.id===entry.id);
   if(idx>=0) DB.historial[idx] = entry;
   else DB.historial.unshift(entry);
