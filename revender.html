@@ -987,34 +987,37 @@ document.addEventListener('keydown',e=>{
 
 // ── VALORAR AUTO ──
 (function(){
-  const MELI_SEARCH = 'https://api.mercadolibre.com/sites/MLA/search';
-  const MELI_CAT    = 'MLA1744'; // Autos y Camionetas Argentina
   const SKIP = ['plan de ahorro','plan ahorro','cuotas','anticipo','adjudicado',
                  '0 km','0km','financiado','prenda','prendado','para repuestos',
                  'solo repuestos','chocado','sin transferir'];
 
   function fmt(n){ return new Intl.NumberFormat('es-AR').format(Math.round(n)); }
+  function toUsd(price, currency, blueRate){ return currency==='USD'?price:price/blueRate; }
 
-  function toUsd(price, currency, blueRate){
-    return currency === 'USD' ? price : price / blueRate;
+  function setValuarState(loading){
+    document.getElementById('v-loading').style.display = loading ? 'inline' : 'none';
+    document.getElementById('btn-valuar').disabled = loading;
   }
 
-  function getYear(item){
-    for(const a of item.attributes || [])
-      if(a.id === 'VEHICLE_YEAR') return parseInt(a.value_name) || null;
-    return null;
+  function showError(msg){
+    const el = document.getElementById('v-error');
+    el.textContent = msg; el.style.display = 'block';
+    setValuarState(false);
   }
 
   function renderRefCard(car, rank){
+    const precioOrig = car.currency==='USD'
+      ? `USD ${fmt(car.price)}`
+      : `${fmt(car.price)} ARS`;
     return `
       <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
         <span class="badge badge-profit" style="font-size:10px;flex-shrink:0">#${rank}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${car.titulo}</div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${car.anio ? car.anio+' · ' : ''}${car.moneda==='ARS'?fmt(car.precio_original)+' ARS':'USD '+fmt(car.precio_original)}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${car.title}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${car.year?car.year+' · ':''}${precioOrig}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:17px;font-weight:700;color:var(--profit)">USD ${fmt(car.precio_usd)}</div>
+          <div style="font-size:17px;font-weight:700;color:var(--profit)">USD ${fmt(car._usd)}</div>
           ${car.url?`<a href="${car.url}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">Ver publicación →</a>`:''}
         </div>
       </div>`;
@@ -1022,18 +1025,78 @@ document.addEventListener('keydown',e=>{
 
   function renderTodosRow(car, i){
     const isRef = i===1||i===2;
+    const precioOrig = car.currency==='USD'?`USD ${fmt(car.price)}`:`${fmt(car.price)} ARS`;
     return `<tr${isRef?' style="background:var(--badge-profit)"':''}>
       <td>${i+1}${isRef?' ★':''}</td>
       <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-        ${car.url?`<a href="${car.url}" target="_blank" style="color:var(--primary);text-decoration:none">${car.titulo}</a>`:car.titulo}
+        ${car.url?`<a href="${car.url}" target="_blank" style="color:var(--primary);text-decoration:none">${car.title}</a>`:car.title}
       </td>
-      <td>${car.anio||'—'}</td>
-      <td style="font-weight:600;color:var(--profit)">USD ${fmt(car.precio_usd)}</td>
-      <td style="color:var(--text-3)">${car.moneda==='ARS'?fmt(car.precio_original)+' ARS':'USD '+fmt(car.precio_original)}</td>
+      <td>${car.year||'—'}</td>
+      <td style="font-weight:600;color:var(--profit)">USD ${fmt(car._usd)}</td>
+      <td style="color:var(--text-3)">${precioOrig}</td>
     </tr>`;
   }
 
-  document.getElementById('btn-valuar')?.addEventListener('click', async () => {
+  function processAndShow(listings, blueRate){
+    // Filtrar y enriquecer con precio USD
+    const priced = listings
+      .filter(l => l.price && l.price > 0 && !SKIP.some(kw=>(l.title||'').toLowerCase().includes(kw)))
+      .map(l => ({ ...l, _usd: toUsd(l.price, l.currency||'ARS', blueRate) }))
+      .sort((a,b) => a._usd - b._usd);
+
+    if(!priced.length){
+      showError('No se encontraron resultados válidos. Probá con menos filtros o sin versión específica.');
+      return;
+    }
+
+    // Valor de mercado = promedio 2° y 3° más barato
+    let refs, marketValue;
+    if(priced.length>=3){
+      refs=[priced[1],priced[2]]; marketValue=(priced[1]._usd+priced[2]._usd)/2;
+    } else if(priced.length===2){
+      refs=[priced[0],priced[1]]; marketValue=(priced[0]._usd+priced[1]._usd)/2;
+    } else {
+      refs=[priced[0]]; marketValue=priced[0]._usd;
+    }
+
+    document.getElementById('v-valor-display').textContent = 'USD '+fmt(marketValue);
+    document.getElementById('v-valor-sub').textContent =
+      `Promedio del 2° y 3° más barato · ${priced.length} publicación${priced.length!==1?'es':''} analizadas`;
+    document.getElementById('v-cotizacion').textContent =
+      `Cotización dólar Blue utilizada: $${fmt(blueRate)}`;
+
+    document.getElementById('v-refs').innerHTML = refs.map((c,i)=>renderRefCard(c,i+2)).join('');
+
+    const todosEl   = document.getElementById('v-todos-tbody');
+    const todosWrap = document.getElementById('v-todos-wrap');
+    const todosBtn  = document.getElementById('btn-v-toggle-todos');
+    todosEl.innerHTML = priced.slice(0,20).map((c,i)=>renderTodosRow(c,i)).join('');
+    todosBtn.style.display = 'inline-flex';
+    todosBtn.textContent   = `Ver todos los resultados (${Math.min(priced.length,20)})`;
+    todosBtn.onclick = ()=>{
+      const open = todosWrap.style.display!=='none';
+      todosWrap.style.display = open?'none':'block';
+      todosBtn.textContent = open
+        ? `Ver todos los resultados (${Math.min(priced.length,20)})`
+        : 'Ocultar resultados';
+    };
+
+    document.getElementById('v-result').style.display = 'block';
+    setValuarState(false);
+  }
+
+  // Escuchar respuestas de la extensión
+  window.addEventListener('gonzalito:precio-status', e => {
+    document.getElementById('v-loading').textContent = e.detail.message + '…';
+  });
+  window.addEventListener('gonzalito:precio-error', e => showError(e.detail.message));
+  window.addEventListener('gonzalito:precio-resultado', async e => {
+    const blueRes  = await fetch('/api/blue-rate').catch(()=>({json:()=>({rate:1470})}));
+    const blueData = await blueRes.json();
+    processAndShow(e.detail.listings, blueData.rate || 1470);
+  });
+
+  document.getElementById('btn-valuar')?.addEventListener('click', () => {
     const marca   = document.getElementById('v-marca').value.trim();
     const modelo  = document.getElementById('v-modelo').value.trim();
     const version = document.getElementById('v-version').value.trim();
@@ -1042,95 +1105,22 @@ document.addEventListener('keydown',e=>{
 
     if(!marca||!modelo){ showToast('Marca y Modelo son obligatorios','warn'); return; }
 
-    const errEl  = document.getElementById('v-error');
-    const loadEl = document.getElementById('v-loading');
-    const resEl  = document.getElementById('v-result');
-    errEl.style.display='none'; resEl.style.display='none'; loadEl.style.display='inline';
-    document.getElementById('btn-valuar').disabled=true;
+    document.getElementById('v-error').style.display  = 'none';
+    document.getElementById('v-result').style.display = 'none';
+    document.getElementById('v-loading').textContent  = 'Abriendo Mercado Libre…';
+    setValuarState(true);
 
-    try {
-      // 1. Cotización Blue desde nuestro backend
-      const blueRes  = await fetch('/api/blue-rate');
-      const blueData = await blueRes.json();
-      const blueRate = blueData.rate || 1435;
-
-      // 2. Búsqueda en MercadoLibre (desde el browser — sin restricción de IP)
-      const parts = [marca, modelo];
-      if(version) parts.push(version);
-      if(anioMin && anioMax && anioMin===anioMax) parts.push(String(anioMin));
-      else if(anioMin && !anioMax) parts.push(String(anioMin));
-
-      const params = new URLSearchParams({
-        q: parts.join(' '),
-        category: MELI_CAT,
-        condition: 'used',
-        limit: 50,
-      });
-      const meliRes  = await fetch(`${MELI_SEARCH}?${params}`);
-      if(!meliRes.ok) throw new Error(`MercadoLibre devolvió error ${meliRes.status}`);
-      const meliData = await meliRes.json();
-      const results  = meliData.results || [];
-
-      // 3. Filtrar y convertir a USD
-      const priced = [];
-      for(const item of results){
-        const title    = item.title || '';
-        const price    = item.price;
-        const currency = (item.currency_id||'ARS').toUpperCase();
-        if(!price||price<=0) continue;
-        if(SKIP.some(kw=>title.toLowerCase().includes(kw))) continue;
-        const year = getYear(item);
-        if(anioMin && year && year < anioMin) continue;
-        if(anioMax && year && year > anioMax) continue;
-        priced.push({
-          titulo: title, precio_usd: toUsd(price, currency, blueRate),
-          precio_original: price, moneda: currency,
-          anio: year, url: item.permalink||'',
-        });
-      }
-      priced.sort((a,b)=>a.precio_usd-b.precio_usd);
-
-      if(!priced.length) throw new Error('No se encontraron resultados. Probá con menos filtros o sin versión específica.');
-
-      // 4. Valor de mercado = promedio 2° y 3° más barato
-      let refs, marketValue;
-      if(priced.length>=3){
-        refs=[priced[1],priced[2]]; marketValue=(priced[1].precio_usd+priced[2].precio_usd)/2;
-      } else if(priced.length===2){
-        refs=[priced[0],priced[1]]; marketValue=(priced[0].precio_usd+priced[1].precio_usd)/2;
-      } else {
-        refs=[priced[0]]; marketValue=priced[0].precio_usd;
-      }
-
-      // 5. Mostrar resultados
-      document.getElementById('v-valor-display').textContent='USD '+fmt(marketValue);
-      document.getElementById('v-valor-sub').textContent=
-        `Promedio del 2° y 3° más barato · ${priced.length} publicación${priced.length!==1?'es':''} analizadas`;
-      document.getElementById('v-cotizacion').textContent=
-        `Cotización dólar Blue utilizada: $${fmt(blueRate)}`;
-
-      document.getElementById('v-refs').innerHTML=refs.map((c,i)=>renderRefCard(c,i+2)).join('');
-
-      const todosEl   = document.getElementById('v-todos-tbody');
-      const todosWrap = document.getElementById('v-todos-wrap');
-      const todosBtn  = document.getElementById('btn-v-toggle-todos');
-      todosEl.innerHTML=priced.slice(0,15).map((c,i)=>renderTodosRow(c,i)).join('');
-      if(priced.length>0){
-        todosBtn.style.display='inline-flex';
-        todosBtn.textContent=`Ver todos los resultados (${Math.min(priced.length,15)})`;
-        todosBtn.onclick=()=>{
-          const open=todosWrap.style.display!=='none';
-          todosWrap.style.display=open?'none':'block';
-          todosBtn.textContent=open?`Ver todos los resultados (${Math.min(priced.length,15)})`:'Ocultar resultados';
-        };
-      }
-      resEl.style.display='block';
-
-    } catch(e){
-      errEl.textContent=e.message; errEl.style.display='block';
-    } finally {
-      loadEl.style.display='none'; document.getElementById('btn-valuar').disabled=false;
+    if(!extensionDetected){
+      showError('La extensión de Revender no está instalada o no está activa. Instalala para poder consultar precios.');
+      return;
     }
+
+    const params = { marca, modelo };
+    if(version) params.version = version;
+    if(anioMin) params.anioMin = anioMin;
+    if(anioMax) params.anioMax = anioMax;
+
+    window.dispatchEvent(new CustomEvent('gonzalito:precio-lookup', { detail: params }));
   });
 
   ['v-marca','v-modelo','v-version','v-anio-min','v-anio-max'].forEach(id=>{
