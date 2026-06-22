@@ -22,6 +22,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 import storage
 import valuation
+import pricer
 
 DASHBOARD_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -283,6 +284,13 @@ def _row_from_db(r):
         "motivo": r.get("motivo"),
         "riesgos": r.get("riesgos"),
     }
+
+
+@app.get("/api/blue-rate")
+def blue_rate():
+    """Cotización dólar Blue actual. El cliente la usa para convertir precios MELI."""
+    rate = valuation.fetch_blue_usd_rate()
+    return jsonify(rate=round(rate))
 
 
 @app.get("/api/searches")

@@ -475,6 +475,10 @@ a.link:hover{text-decoration:underline;}
           <span class="nav-count" id="cnt-alertas"></span>
         </button>
         <div class="nav-section-label">Herramientas</div>
+        <button type="button" class="item" data-view="valuar">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="item-label">Valorar auto</span>
+        </button>
         <button type="button" class="item" data-view="importar">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
           <span class="item-label">Importar datos</span>
@@ -666,6 +670,60 @@ a.link:hover{text-decoration:underline;}
             </div>
           </section>
 
+          <!-- ── VALORAR ── -->
+          <section id="view-valuar" style="display:none">
+            <div class="view-header">
+              <h2>Valorar auto</h2>
+              <div class="sub">Consultá el valor de mercado de un auto sin traer publicaciones. Usamos el promedio del 2° y 3° más barato en USD Blue.</div>
+            </div>
+            <div class="card" style="margin-bottom:14px">
+              <div class="form-grid cols5">
+                <div><label>Marca *</label><input id="v-marca" placeholder="Toyota" autocomplete="off"></div>
+                <div><label>Modelo *</label><input id="v-modelo" placeholder="Corolla" autocomplete="off"></div>
+                <div><label>Versión</label><input id="v-version" placeholder="XEI (opcional)" autocomplete="off"></div>
+                <div><label>Año mín.</label><input id="v-anio-min" type="number" placeholder="2020" min="1990" max="2030"></div>
+                <div><label>Año máx.</label><input id="v-anio-max" type="number" placeholder="2023" min="1990" max="2030"></div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary" id="btn-valuar">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  Consultar precio
+                </button>
+                <span id="v-loading" style="display:none;font-size:13px;color:var(--text-3)">Buscando en MercadoLibre…</span>
+              </div>
+              <div id="v-error" style="display:none;margin-top:10px;font-size:13px;color:var(--risk)"></div>
+            </div>
+
+            <!-- Resultado -->
+            <div id="v-result" style="display:none">
+              <!-- Valor principal -->
+              <div class="card" style="margin-bottom:14px;text-align:center;padding:28px 20px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Valor de mercado</div>
+                <div id="v-valor-display" style="font-size:48px;font-weight:800;letter-spacing:-0.03em;color:var(--profit);line-height:1"></div>
+                <div id="v-valor-sub" style="font-size:13px;color:var(--text-3);margin-top:8px"></div>
+                <div id="v-cotizacion" style="font-size:11px;color:var(--text-3);margin-top:4px"></div>
+              </div>
+
+              <!-- Autos de referencia -->
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;padding:0 2px">Referencias usadas para el cálculo</div>
+              <div id="v-refs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+
+              <!-- Todos los resultados -->
+              <div id="v-todos-wrap" style="display:none">
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;padding:0 2px">Todos los resultados ordenados</div>
+                <div class="table-wrap">
+                  <div class="table-scroll">
+                    <table>
+                      <thead><tr><th>#</th><th>Título</th><th>Año</th><th>Precio USD</th><th>Precio original</th></tr></thead>
+                      <tbody id="v-todos-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="btn-v-toggle-todos" style="margin-top:6px;display:none">Ver todos los resultados</button>
+            </div>
+          </section>
+
           <!-- ── IMPORTAR ── -->
           <section id="view-importar" style="display:none">
             <div class="view-header">
@@ -734,6 +792,10 @@ a.link:hover{text-decoration:underline;}
   <button type="button" class="item tab-item" data-view="alertas">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
     <span>Alertas</span>
+  </button>
+  <button type="button" class="item tab-item" data-view="valuar">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Valorar</span>
   </button>
 </nav>
 
@@ -854,7 +916,7 @@ function showToast(message,type){
 }
 
 // ── NAV ──
-const ALL_VIEWS=['dashboard','buscar','historial','oportunidades','alertas','importar'];
+const ALL_VIEWS=['dashboard','buscar','historial','oportunidades','alertas','valuar','importar'];
 document.querySelectorAll('.item[data-view]').forEach(el=>{
   el.addEventListener('click',()=>showView(el.dataset.view));
 });
@@ -891,6 +953,7 @@ const CMDK_ITEMS=[
   {label:'Historial de búsquedas',view:'historial'},
   {label:'Oportunidades detectadas',view:'oportunidades'},
   {label:'Alertas',view:'alertas'},
+  {label:'Valorar auto',view:'valuar'},
   {label:'Importar datos',view:'importar'},
 ];
 const cmdkOverlay=document.getElementById('cmdk-overlay');
@@ -921,6 +984,161 @@ document.getElementById('btn-cmdk-side')?.addEventListener('click',openCmdk);
 document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdkOverlay.classList.contains('open')?closeCmdk():openCmdk();}
 });
+
+// ── VALORAR AUTO ──
+(function(){
+  const MELI_SEARCH = 'https://api.mercadolibre.com/sites/MLA/search';
+  const MELI_CAT    = 'MLA1744'; // Autos y Camionetas Argentina
+  const SKIP = ['plan de ahorro','plan ahorro','cuotas','anticipo','adjudicado',
+                 '0 km','0km','financiado','prenda','prendado','para repuestos',
+                 'solo repuestos','chocado','sin transferir'];
+
+  function fmt(n){ return new Intl.NumberFormat('es-AR').format(Math.round(n)); }
+
+  function toUsd(price, currency, blueRate){
+    return currency === 'USD' ? price : price / blueRate;
+  }
+
+  function getYear(item){
+    for(const a of item.attributes || [])
+      if(a.id === 'VEHICLE_YEAR') return parseInt(a.value_name) || null;
+    return null;
+  }
+
+  function renderRefCard(car, rank){
+    return `
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+        <span class="badge badge-profit" style="font-size:10px;flex-shrink:0">#${rank}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${car.titulo}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${car.anio ? car.anio+' · ' : ''}${car.moneda==='ARS'?fmt(car.precio_original)+' ARS':'USD '+fmt(car.precio_original)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:17px;font-weight:700;color:var(--profit)">USD ${fmt(car.precio_usd)}</div>
+          ${car.url?`<a href="${car.url}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">Ver publicación →</a>`:''}
+        </div>
+      </div>`;
+  }
+
+  function renderTodosRow(car, i){
+    const isRef = i===1||i===2;
+    return `<tr${isRef?' style="background:var(--badge-profit)"':''}>
+      <td>${i+1}${isRef?' ★':''}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${car.url?`<a href="${car.url}" target="_blank" style="color:var(--primary);text-decoration:none">${car.titulo}</a>`:car.titulo}
+      </td>
+      <td>${car.anio||'—'}</td>
+      <td style="font-weight:600;color:var(--profit)">USD ${fmt(car.precio_usd)}</td>
+      <td style="color:var(--text-3)">${car.moneda==='ARS'?fmt(car.precio_original)+' ARS':'USD '+fmt(car.precio_original)}</td>
+    </tr>`;
+  }
+
+  document.getElementById('btn-valuar')?.addEventListener('click', async () => {
+    const marca   = document.getElementById('v-marca').value.trim();
+    const modelo  = document.getElementById('v-modelo').value.trim();
+    const version = document.getElementById('v-version').value.trim();
+    const anioMin = parseInt(document.getElementById('v-anio-min').value) || null;
+    const anioMax = parseInt(document.getElementById('v-anio-max').value) || null;
+
+    if(!marca||!modelo){ showToast('Marca y Modelo son obligatorios','warn'); return; }
+
+    const errEl  = document.getElementById('v-error');
+    const loadEl = document.getElementById('v-loading');
+    const resEl  = document.getElementById('v-result');
+    errEl.style.display='none'; resEl.style.display='none'; loadEl.style.display='inline';
+    document.getElementById('btn-valuar').disabled=true;
+
+    try {
+      // 1. Cotización Blue desde nuestro backend
+      const blueRes  = await fetch('/api/blue-rate');
+      const blueData = await blueRes.json();
+      const blueRate = blueData.rate || 1435;
+
+      // 2. Búsqueda en MercadoLibre (desde el browser — sin restricción de IP)
+      const parts = [marca, modelo];
+      if(version) parts.push(version);
+      if(anioMin && anioMax && anioMin===anioMax) parts.push(String(anioMin));
+      else if(anioMin && !anioMax) parts.push(String(anioMin));
+
+      const params = new URLSearchParams({
+        q: parts.join(' '),
+        category: MELI_CAT,
+        condition: 'used',
+        limit: 50,
+      });
+      const meliRes  = await fetch(`${MELI_SEARCH}?${params}`);
+      if(!meliRes.ok) throw new Error(`MercadoLibre devolvió error ${meliRes.status}`);
+      const meliData = await meliRes.json();
+      const results  = meliData.results || [];
+
+      // 3. Filtrar y convertir a USD
+      const priced = [];
+      for(const item of results){
+        const title    = item.title || '';
+        const price    = item.price;
+        const currency = (item.currency_id||'ARS').toUpperCase();
+        if(!price||price<=0) continue;
+        if(SKIP.some(kw=>title.toLowerCase().includes(kw))) continue;
+        const year = getYear(item);
+        if(anioMin && year && year < anioMin) continue;
+        if(anioMax && year && year > anioMax) continue;
+        priced.push({
+          titulo: title, precio_usd: toUsd(price, currency, blueRate),
+          precio_original: price, moneda: currency,
+          anio: year, url: item.permalink||'',
+        });
+      }
+      priced.sort((a,b)=>a.precio_usd-b.precio_usd);
+
+      if(!priced.length) throw new Error('No se encontraron resultados. Probá con menos filtros o sin versión específica.');
+
+      // 4. Valor de mercado = promedio 2° y 3° más barato
+      let refs, marketValue;
+      if(priced.length>=3){
+        refs=[priced[1],priced[2]]; marketValue=(priced[1].precio_usd+priced[2].precio_usd)/2;
+      } else if(priced.length===2){
+        refs=[priced[0],priced[1]]; marketValue=(priced[0].precio_usd+priced[1].precio_usd)/2;
+      } else {
+        refs=[priced[0]]; marketValue=priced[0].precio_usd;
+      }
+
+      // 5. Mostrar resultados
+      document.getElementById('v-valor-display').textContent='USD '+fmt(marketValue);
+      document.getElementById('v-valor-sub').textContent=
+        `Promedio del 2° y 3° más barato · ${priced.length} publicación${priced.length!==1?'es':''} analizadas`;
+      document.getElementById('v-cotizacion').textContent=
+        `Cotización dólar Blue utilizada: $${fmt(blueRate)}`;
+
+      document.getElementById('v-refs').innerHTML=refs.map((c,i)=>renderRefCard(c,i+2)).join('');
+
+      const todosEl   = document.getElementById('v-todos-tbody');
+      const todosWrap = document.getElementById('v-todos-wrap');
+      const todosBtn  = document.getElementById('btn-v-toggle-todos');
+      todosEl.innerHTML=priced.slice(0,15).map((c,i)=>renderTodosRow(c,i)).join('');
+      if(priced.length>0){
+        todosBtn.style.display='inline-flex';
+        todosBtn.textContent=`Ver todos los resultados (${Math.min(priced.length,15)})`;
+        todosBtn.onclick=()=>{
+          const open=todosWrap.style.display!=='none';
+          todosWrap.style.display=open?'none':'block';
+          todosBtn.textContent=open?`Ver todos los resultados (${Math.min(priced.length,15)})`:'Ocultar resultados';
+        };
+      }
+      resEl.style.display='block';
+
+    } catch(e){
+      errEl.textContent=e.message; errEl.style.display='block';
+    } finally {
+      loadEl.style.display='none'; document.getElementById('btn-valuar').disabled=false;
+    }
+  });
+
+  ['v-marca','v-modelo','v-version','v-anio-min','v-anio-max'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('keydown',e=>{
+      if(e.key==='Enter') document.getElementById('btn-valuar')?.click();
+    });
+  });
+})();
 
 // ── EXTENSION BRIDGE ──
 let extensionDetected=false;
